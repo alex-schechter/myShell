@@ -3,6 +3,7 @@
 void print_env(char *buffer, char **commands, char **env){
     int i=0;
     while (env[i]){
+        printf("%s\n", env[i], strlen(env[i]));
         i++;
     }
     free(buffer);
