@@ -2,8 +2,8 @@
 
 
 void commands_is_null(char *buffer){
+    printf("command is null\n");
     free(buffer);
-    return;
 }
 
 void exit_cmd(char *buffer, char **commands){

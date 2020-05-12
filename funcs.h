@@ -3,7 +3,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include<sys/wait.h> 
+#include <sys/wait.h> 
+#include  <signal.h>
 
 //commands
 char **parse_commands(char *buffer);
@@ -27,3 +28,7 @@ void commands_is_null(char *buffer);
 void exit_cmd(char *buffer, char **commands);
 int _strlen(char *buffer);
 void free_duble_ptr(char **ptr);
+
+//hendlers
+void INThandler(int);
+void CHILDhandler(int);

@@ -7,22 +7,43 @@ int main(int argc, char **argv, char **env){
     char *env_command="env", *exit_command="exit", *dolar="$ ";
     ssize_t characters; size_t length;
     struct stat check_file;  
-
+    int background = 0;
     int pid, status;
 
     buffer = NULL;
     length = 0;
 
+    signal (SIGINT, INThandler);
+    // signal (SIGCHLD, CHILDhandler);
+
     write(STDOUT_FILENO, dolar, strlen(dolar));
 
+    printf("you can write now\n");
+
     while((characters = getline(&buffer, &length, stdin))){
+
 
         if (characters == EOF){
             exit(EXIT_FAILURE);
         }
 
+        int len = _strlen(buffer);
+
+        //check if it is a background process
+        if ((char)buffer[len-2] == '&'){
+            background = 1;
+            buffer[len-2] = '\n';
+            buffer[len-1] = '\0';
+        }
+
         //parse the commands from input
         commands = parse_commands(buffer);
+        if (commands == NULL){
+            write(STDOUT_FILENO, dolar, strlen(dolar));
+            buffer = NULL;
+            background = 0;
+            continue;
+        }
 
         //create a new process for the command
         pid = fork();
@@ -34,6 +55,10 @@ int main(int argc, char **argv, char **env){
         }
         // child process
         if(pid == 0){
+            // if (background == 1){
+            //     setpgid(0, 0);
+            // }
+        
             if (commands == NULL){
                 commands_is_null(buffer);
             }
@@ -61,8 +86,35 @@ int main(int argc, char **argv, char **env){
 
         //father process
         else{
-            //wait for child process to finish
-            wait(&status);
+            // int parentPID = getpid();
+            // setpgid(0, 0);
+
+
+            if (background == 1){
+                // int length = snprintf( NULL, 0, "%d", pid );
+                // char *p = malloc(length + 4 + 1);
+                // char *str = malloc( length + 2 );
+                // if (str == NULL || p == NULL){
+                //     perror("could not allocate memory");
+                //     free(buffer);
+                //     free_duble_ptr(commands);
+                //     exit(EXIT_FAILURE);
+                // }
+                // snprintf( str, length + 1, "%d", pid );
+                // strcat(p, "PID ");
+                // strcat(p, str);
+                // write(STDOUT_FILENO, p, strlen(p));
+                // write(STDOUT_FILENO, "\n", 1);
+
+                // setpgrp();
+                int stat;
+                waitpid(-1, &stat, WNOHANG);
+            }
+
+            else {
+                wait(NULL);
+            }
+            
 
             if (commands == NULL){
                 free(buffer);
@@ -81,9 +133,11 @@ int main(int argc, char **argv, char **env){
 
         }
 
-        // break;
         write(STDOUT_FILENO, dolar, strlen(dolar));
         buffer = NULL;
+        background = 0;
+        printf("you can write now\n");
+
         
     }
 
