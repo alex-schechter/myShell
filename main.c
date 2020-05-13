@@ -70,7 +70,10 @@ int main(int argc, char **argv, char **env){
                 print_env(buffer, commands, env);
             }
 
-
+            //check if the command is cd
+            else if(strcmp(commands[0], "cd") == 0){
+                exit(EXIT_SUCCESS);
+            }
 
             //check if the command is a full path to command
             else if (stat(commands[0], &check_file) == 0){
@@ -98,6 +101,13 @@ int main(int argc, char **argv, char **env){
             //check if the command is exit
             else if (strcmp(commands[0], exit_command) == 0){
                 exit_cmd(buffer, commands);
+            }
+
+            //check if the command is cd
+            else if(strcmp(commands[0], "cd") == 0){
+                if (chdir(commands[1])!=0){
+                    printf("could not cd into '%s'\n", commands[1]);
+                }
             }
 
             else{
