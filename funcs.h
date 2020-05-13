@@ -6,6 +6,8 @@
 #include <sys/wait.h> 
 #include  <signal.h>
 
+#define MAX_SIZE 1024
+
 //commands
 char **parse_commands(char *buffer);
 int get_commands_length(char *buffer);
@@ -28,7 +30,8 @@ void commands_is_null(char *buffer);
 void exit_cmd(char *buffer, char **commands);
 int _strlen(char *buffer);
 void free_duble_ptr(char **ptr);
+void print_shell(char *);
+
 
 //hendlers
 void INThandler(int);
-void CHILDhandler(int);

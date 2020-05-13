@@ -3,7 +3,8 @@
 void INThandler (int sig)
 {
     (void)sig;
-    write(STDOUT_FILENO, "\n$ ", 3);
+    write(STDOUT_FILENO, "\n", 2);
+    print_shell("$ ");
 }
 
 void CHILDhandler(int sig){

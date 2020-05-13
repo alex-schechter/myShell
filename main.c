@@ -9,14 +9,12 @@ int main(int argc, char **argv, char **env){
     struct stat check_file;  
     int background = 0;
     int pid, status;
-
     buffer = NULL;
     length = 0;
 
-    signal (SIGINT, INThandler);
+    signal (SIGINT, INThandler);    
 
-    write(STDOUT_FILENO, dolar, strlen(dolar));
-
+    print_shell(dolar);
 
     while((characters = getline(&buffer, &length, stdin))){
 
@@ -26,9 +24,6 @@ int main(int argc, char **argv, char **env){
         }
 
         pid = waitpid(-1, &status, WNOHANG);
-        if (pid>0){
-            printf("reaped child pid %d\n", pid);
-        }
 
         int len = _strlen(buffer);
 
@@ -42,7 +37,7 @@ int main(int argc, char **argv, char **env){
         //parse the commands from input
         commands = parse_commands(buffer);
         if (commands == NULL){
-            write(STDOUT_FILENO, dolar, strlen(dolar));
+            print_shell(dolar);
             buffer = NULL;
             background = 0;
             continue;
@@ -75,6 +70,8 @@ int main(int argc, char **argv, char **env){
                 print_env(buffer, commands, env);
             }
 
+
+
             //check if the command is a full path to command
             else if (stat(commands[0], &check_file) == 0){
                 execve(commands[0], commands, NULL);
@@ -91,9 +88,6 @@ int main(int argc, char **argv, char **env){
         else{
             if (background == 0){
                 pid = waitpid(-1, &status, 0);
-                if (pid>0){
-                    printf("reaped fg process %d\n", pid);
-                }
             }
 
             if (commands == NULL){
@@ -113,7 +107,7 @@ int main(int argc, char **argv, char **env){
 
         }
 
-        write(STDOUT_FILENO, dolar, strlen(dolar));
+        print_shell(dolar);
         buffer = NULL;
         background = 0;
     }
