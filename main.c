@@ -58,6 +58,10 @@ int main(int argc, char **argv, char **env){
         }
         // child process
         if(pid == 0){
+            if (background){
+                setpgid(0,0);
+            }
+            
             if (commands == NULL){
                 commands_is_null(buffer);
             }
