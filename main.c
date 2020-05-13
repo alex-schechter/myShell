@@ -1,5 +1,7 @@
 #include "funcs.h"
 
+
+
 int main(int argc, char **argv, char **env){
 
     char **commands;
@@ -13,6 +15,9 @@ int main(int argc, char **argv, char **env){
     length = 0;
 
     signal (SIGINT, INThandler);    
+    
+    signal (SIGCONT, CONThandler);
+
 
     print_shell(dolar);
 
@@ -53,6 +58,10 @@ int main(int argc, char **argv, char **env){
         }
         // child process
         if(pid == 0){
+            signal(SIGTSTP, TSTPhandler);
+
+            printf("started process %d\n", getpid());
+
             if (background){
                 setpgid(0,0);
             }
@@ -89,6 +98,7 @@ int main(int argc, char **argv, char **env){
 
         //father process
         else{
+            signal (SIGTSTP, SIG_IGN);
             if (background == 0){
                 pid = waitpid(-1, &status, 0);
             }

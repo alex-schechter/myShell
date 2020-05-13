@@ -8,6 +8,16 @@
 
 #define MAX_SIZE 1024
 
+
+typedef struct job{
+    int job_num;
+    int pid;
+    int status;
+    char *command;
+}job;
+
+void add_job_to_list();
+
 //commands
 char **parse_commands(char *buffer);
 int get_commands_length(char *buffer);
@@ -35,3 +45,5 @@ void print_shell(char *);
 
 //hendlers
 void INThandler(int);
+void TSTPhandler(int);
+void CONThandler(int);
