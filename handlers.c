@@ -9,6 +9,4 @@ void INThandler (int sig)
 
 void CHILDhandler(int sig){
     (void)sig;
-    
-    // write(STDOUT_FILENO, "\n", 1);
 }
