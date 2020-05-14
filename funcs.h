@@ -4,19 +4,30 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/wait.h> 
-#include  <signal.h>
+#include <signal.h>
 
 #define MAX_SIZE 1024
 
+#define RUNNING "RUNNING"
+#define STOPPED "STOPPED"
+#define DONE "DONE"
 
 typedef struct job{
     int job_num;
     int pid;
-    int status;
+    char *status;
     char *command;
 }job;
 
-void add_job_to_list();
+typedef struct jobList
+{
+    int size;
+    job *jobs;
+}jobList;
+
+
+void add_job_to_list(jobList *job_list, char *status);
+void remove_job_from_list(job **job_list);
 
 //commands
 char **parse_commands(char *buffer);

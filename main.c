@@ -1,34 +1,37 @@
 #include "funcs.h"
 
+pid_t pid;
 
+jobList stopped_jobs;
 
 int main(int argc, char **argv, char **env){
 
     char **commands;
     char *buffer;
     char *env_command="env", *exit_command="exit", *dolar="$ ";
-    ssize_t characters; size_t length;
+    ssize_t characters; 
+    size_t length;
     struct stat check_file;  
     int background = 0;
-    int pid, status;
+    int status;
+
     buffer = NULL;
     length = 0;
 
+    // signal handlers
     signal (SIGINT, INThandler);    
-    
+    signal (SIGTSTP, TSTPhandler);
     signal (SIGCONT, CONThandler);
-
 
     print_shell(dolar);
 
     while((characters = getline(&buffer, &length, stdin))){
 
-
         if (characters == EOF){
             exit(EXIT_FAILURE);
         }
 
-        pid = waitpid(-1, &status, WNOHANG);
+        pid = waitpid(-1, &status, WNOHANG|WUNTRACED);
 
         int len = _strlen(buffer);
 
@@ -51,6 +54,8 @@ int main(int argc, char **argv, char **env){
         //create a new process for the command
         pid = fork();
 
+        printf("the new child id is: %d\n", pid);
+
         //fork failed
         if (pid == -1){
             perror("Error: ");
@@ -58,9 +63,8 @@ int main(int argc, char **argv, char **env){
         }
         // child process
         if(pid == 0){
-            signal(SIGTSTP, TSTPhandler);
-
             printf("started process %d\n", getpid());
+            signal(SIGTSTP, SIG_DFL);
 
             if (background){
                 setpgid(0,0);
@@ -98,9 +102,8 @@ int main(int argc, char **argv, char **env){
 
         //father process
         else{
-            signal (SIGTSTP, SIG_IGN);
             if (background == 0){
-                pid = waitpid(-1, &status, 0);
+                pid = waitpid(-1, &status, WUNTRACED);
             }
 
             if (commands == NULL){
