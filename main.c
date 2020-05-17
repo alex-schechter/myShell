@@ -2,7 +2,7 @@
 
 pid_t pid;
 
-jobList stopped_jobs;
+job *stopped_jobs;
 
 int main(int argc, char **argv, char **env){
 
@@ -91,6 +91,13 @@ int main(int argc, char **argv, char **env){
                 exit(EXIT_SUCCESS);
             }
 
+            //check if the command is fg
+            else if(strcmp(commands[0], "fg") == 0){
+                make_forground(&stopped_jobs, commands[1]);
+                // exit(EXIT_SUCCESS);
+            }
+
+            
             //check if the command is a full path to command
             else if (stat(commands[0], &check_file) == 0){
                 execve(commands[0], commands, NULL);
