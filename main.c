@@ -54,8 +54,6 @@ int main(int argc, char **argv, char **env){
         //create a new process for the command
         pid = fork();
 
-        printf("the new child id is: %d\n", pid);
-
         //fork failed
         if (pid == -1){
             perror("Error: ");
@@ -63,7 +61,6 @@ int main(int argc, char **argv, char **env){
         }
         // child process
         if(pid == 0){
-            printf("started process %d\n", getpid());
             signal(SIGTSTP, SIG_DFL);
 
             if (background){
@@ -85,6 +82,12 @@ int main(int argc, char **argv, char **env){
 
             //check if the command is cd
             else if(strcmp(commands[0], "cd") == 0){
+                exit(EXIT_SUCCESS);
+            }
+
+            //check if the command is jobs
+            else if(strcmp(commands[0], "jobs") == 0){
+                print_jobs(stopped_jobs, commands[1]);
                 exit(EXIT_SUCCESS);
             }
 

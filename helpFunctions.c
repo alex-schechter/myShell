@@ -57,3 +57,12 @@ void print_shell(char *dolar){
     write(STDOUT_FILENO, blue, strlen(cwd)+strlen("\033")+strlen("\x1B[34m")-1);
     write(STDOUT_FILENO, white, strlen(white)-1);
 }
+
+int is_number(char *str){
+    size_t i=0;
+    for (; i < strlen(str); i++){
+        if( !isdigit(str[i]))
+            return 0;
+    }
+    return 1;
+}

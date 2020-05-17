@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h> 
 #include <signal.h>
+#include <ctype.h>
 
 #define MAX_SIZE 1024
 
@@ -25,7 +26,10 @@ typedef struct jobList
     job *jobs;
 }jobList;
 
-
+//jobs
+void find_job_by_id(const jobList job_list, char *job_id);
+void print_job(const job j);
+void print_jobs(const jobList jobs, const char *job_id);
 void add_job_to_list(jobList *job_list, char *status);
 void remove_job_from_list(job **job_list);
 
@@ -52,6 +56,7 @@ void exit_cmd(char *buffer, char **commands);
 int _strlen(char *buffer);
 void free_duble_ptr(char **ptr);
 void print_shell(char *);
+int is_number(char *);
 
 
 //hendlers
