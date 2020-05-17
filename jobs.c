@@ -104,11 +104,6 @@ void add_job_to_list(job **job_list,char *status){
             perror("could not allocate memory");
         }
         last_job = *job_list;
-        // (*job_list)->job_num = 1;
-        // (*job_list)->pid = getpid();
-        // (*job_list)->status = strdup(status);
-        // (*job_list)->command = strdup("asd");
-        // (*job_list)->next = NULL;
     }
 
     else{
@@ -120,11 +115,11 @@ void add_job_to_list(job **job_list,char *status){
         }
         last_job = last_job->next;
     }
-        last_job->job_num = get_list_length(*job_list);
-        last_job->pid = getpid();
-        last_job->status = strdup(status);
-        last_job->command = strdup("asd");
-        last_job->next = NULL;
+    last_job->job_num = get_list_length(*job_list);
+    last_job->pid = getpid();
+    last_job->status = strdup(status);
+    last_job->command = strdup("asd");
+    last_job->next = NULL;
 }
 
 
