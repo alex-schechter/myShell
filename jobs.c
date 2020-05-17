@@ -56,9 +56,6 @@ void print_job(job *j){
 }
 
 void print_jobs(job *job_list, char *job_id){
-    // write(STDOUT_FILENO, "**************\n", strlen("**************\n")+1);
-    // print_job(job_list);
-    // write(STDOUT_FILENO, "**************\n", strlen("**************\n")+1);
     job *curr = job_list;
     job *j = NULL;
 
@@ -98,7 +95,6 @@ int get_list_length(job *list){
 void add_job_to_list(job **job_list,char *status){
     job *last_job;
     if ((*job_list) == NULL){
-        write(STDOUT_FILENO, "**************\n", strlen("**************\n")+1);
         (*job_list) = malloc(sizeof(job));
         if (!(*job_list)){
             perror("could not allocate memory");
