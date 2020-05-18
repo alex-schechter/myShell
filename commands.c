@@ -26,7 +26,6 @@ char **parse_commands(char *buffer){
     char *command;
     int i;
     int commands_length;
-
     
     buffer[_strlen(buffer) -1 ] = '\0';
     buff = strdup(buffer);

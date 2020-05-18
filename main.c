@@ -1,6 +1,7 @@
 #include "funcs.h"
 
 pid_t pid;
+pid_t shell_pid;
 
 job *stopped_jobs;
 char *buff;
@@ -15,6 +16,10 @@ int main(int argc, char **argv, char **env){
     struct stat check_file;  
     int background = 0;
     int status;
+
+    shell_pid = getpid();
+    setpgid(shell_pid, shell_pid);
+    tcsetpgrp(0, shell_pid);
 
     buffer = NULL;
     length = 0;
@@ -67,6 +72,7 @@ int main(int argc, char **argv, char **env){
         // child process
         if(pid == 0){
             signal(SIGTSTP, SIG_DFL);
+            signal(SIGCONT, SIG_DFL);
 
             if (background){
                 setpgid(0,0);
@@ -90,11 +96,21 @@ int main(int argc, char **argv, char **env){
                 exit(EXIT_SUCCESS);
             }
 
+            //check if the command is fg
+            else if(strcmp(commands[0], "fg") == 0){
+                continue_job(&stopped_jobs, commands[1]);
+                exit(EXIT_SUCCESS);
+            }
+
+            //check if the command is bg
+            else if(strcmp(commands[0], "bg") == 0){
+                continue_job(&stopped_jobs, commands[1]);
+                exit(EXIT_SUCCESS);
+            }
+
             //check if the command is jobs
             else if(strcmp(commands[0], "jobs") == 0){
-                // printf("the address of stopped_jobs before jobs is %p\n", stopped_jobs);
                 print_jobs(stopped_jobs, commands[1]);
-                // printf("the address of stopped_jobs after jobs is %p\n", stopped_jobs);
                 exit(EXIT_SUCCESS);
             }
 
@@ -112,7 +128,11 @@ int main(int argc, char **argv, char **env){
 
         //father process
         else{
+            // printf("child pid is: %d\n", pid);
+            // printf("father pid is: %d\n", shell_pid);
+
             if (background == 0){
+                // printf("blocking\n");
                 pid = waitpid(-1, &status, WUNTRACED);
             }
 
@@ -135,17 +155,21 @@ int main(int argc, char **argv, char **env){
 
             //check if the command is fg
             else if(strcmp(commands[0], "fg") == 0){
-                // printf("the address of stopped_jobs before fg is %p\n", stopped_jobs);
-                make_forground(&stopped_jobs, commands[1]);
-                // printf("the address of stopped_jobs after fg is %p\n", stopped_jobs);
+                remove_job_from_list(&stopped_jobs, commands[1]);
+                waitpid(-1, NULL, 0); 
+            }
 
-                // exit(EXIT_SUCCESS);
+            //check if the command is fg
+            else if(strcmp(commands[0], "bg") == 0){
+                remove_job_from_list(&stopped_jobs, commands[1]);
             }
 
             else{
                 free(buffer);
                 free_duble_ptr(commands);
             }
+
+            
 
         }
 

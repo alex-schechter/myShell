@@ -14,11 +14,11 @@ void INThandler (int sig)
 // Ctrl Z handler
 void TSTPhandler(int sig){
     (void)sig;
-    add_job_to_list(&stopped_jobs, "STOPPED");
+    add_job_to_list(&stopped_jobs, STOPPED);
 }
 
 void CONThandler(int sig){
     (void)sig;
-    printf("*********\n");
-    // kill(getpid(), SIGCONT);
+    printf("got CONT\n");
+    // add_job_to_list(&stopped_jobs, STOPPED);
 }

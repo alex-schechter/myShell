@@ -1,6 +1,9 @@
 #include "funcs.h"
 
 extern char* buff;
+extern pid_t pid;
+extern pid_t shell_pid;
+
 
 job *find_job_by_id(job *job_list, char *job_id){
     int id;
@@ -52,7 +55,7 @@ void print_no_such_job(char *job_id){
 void print_job(job *j){
     char message[MAX_SIZE];
     message[MAX_SIZE-1] = '\0';
-    snprintf(message, MAX_SIZE, "[%d]+ %s %s\n", j->job_num, j->status, j->command);
+    snprintf(message, MAX_SIZE, "[%d]+ %s %s (%d)\n", j->job_num, j->status, j->command, j->pid);
     write(STDOUT_FILENO, message, strlen(message)+1);
 }
 
@@ -61,6 +64,7 @@ void print_jobs(job *job_list, char *job_id){
     job *j = NULL;
 
     if (job_list == NULL){
+            printf("there are no jobs\n");
             return;
     }
 
@@ -93,7 +97,6 @@ int get_list_length(job *list){
     return count;
 }
 
-// TODO figure out how to get the correct command (job_list->jobs[last_index].command)
 void add_job_to_list(job **job_list,char *status){
     job *last_job;
 
@@ -122,33 +125,45 @@ void add_job_to_list(job **job_list,char *status){
         
     }
 
+    // printf("adding job with pid of: %d\n", pid);
+
     last_job->next = NULL;
-    last_job->pid = getpid();
+    last_job->pid = pid;
     last_job->status = strdup(status);
     last_job->command = strdup(buff);
 }
 
 
-void remove_job_from_list(job **job_list, int job_num){
+void remove_job_from_list(job **job_list, char *job_num){
     job *curr = *job_list;
     job *prev;
-    char str[11];
+    int num;
 
-    if (curr != NULL && curr->job_num == job_num) 
+    if (job_num == NULL){
+        num = get_last_job(*job_list)->job_num;
+    }
+    else{
+        if (!(is_number(job_num))){
+            return;
+        }
+        num = atoi(job_num);
+    }
+
+    if (curr != NULL && curr->job_num == num) 
     { 
         *job_list = curr->next;
         free(curr);
         return; 
     }
-    while (curr != NULL && curr->job_num != job_num) 
+
+    while (curr != NULL && curr->job_num != num) 
     { 
         prev = curr; 
         curr = curr->next; 
     } 
   
     if (curr == NULL){
-        snprintf(str, 11, "%d", job_num);
-        print_no_such_job(str);
+        print_no_such_job(job_num);
         return;
     }
 
@@ -156,16 +171,26 @@ void remove_job_from_list(job **job_list, int job_num){
     free(curr);
 }
 
-void make_forground(job **job_list, char *job_id){
-    job *last_job;
+void continue_job(job **job_list, char *job_id){
+    job *job_to_remove;
+    int pid_to_cont = -1;
+
     if (!(*job_list)){
-        exit(EXIT_SUCCESS);
+        write(STDOUT_FILENO, "There is not job to be countinued\n", strlen("There is not job to be countinued\n")+1);
+        return;
     }
+    
     if (job_id == NULL){        
-        remove_job_from_list(job_list, get_last_job(*job_list)->job_num);
+        job_to_remove = get_last_job(*job_list);
+        pid_to_cont = job_to_remove->pid;
+        // printf("forgrounding process with pid: %d\n", pid_to_cont);
     }
 
     else{
-        remove_job_from_list(job_list, atoi(job_id));
+        job_to_remove = find_job_by_id(*job_list, job_id);
+        pid_to_cont = job_to_remove->pid;
+        // printf("forgrounding process with pid: %d\n", pid_to_cont);
     }
+    
+    kill (pid_to_cont, SIGCONT);
 }
