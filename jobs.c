@@ -1,5 +1,6 @@
 #include "funcs.h"
 
+extern char* buff;
 
 job *find_job_by_id(job *job_list, char *job_id){
     int id;
@@ -96,6 +97,10 @@ int get_list_length(job *list){
 void add_job_to_list(job **job_list,char *status){
     job *last_job;
 
+    if(buff == NULL){
+        return;
+    }
+
     if ((*job_list) == NULL){
         (*job_list) = malloc(sizeof(job));
         if (!(*job_list)){
@@ -120,7 +125,7 @@ void add_job_to_list(job **job_list,char *status){
     last_job->next = NULL;
     last_job->pid = getpid();
     last_job->status = strdup(status);
-    last_job->command = strdup("asd");
+    last_job->command = strdup(buff);
 }
 
 

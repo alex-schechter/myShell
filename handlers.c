@@ -14,9 +14,7 @@ void INThandler (int sig)
 // Ctrl Z handler
 void TSTPhandler(int sig){
     (void)sig;
-    // printf("the address of stopped_jobs before is %p\n", stopped_jobs);
     add_job_to_list(&stopped_jobs, "STOPPED");
-    // printf("the address of stopped_jobs after is %p\n", stopped_jobs);
 }
 
 void CONThandler(int sig){

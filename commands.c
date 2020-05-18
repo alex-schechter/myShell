@@ -1,5 +1,7 @@
 #include "funcs.h"
 
+extern char *buff;
+
 int get_commands_length(char *buffer){
     int count = 0, i = 0, is_candidate = 0;
 
@@ -25,7 +27,9 @@ char **parse_commands(char *buffer){
     int i;
     int commands_length;
 
+    
     buffer[_strlen(buffer) -1 ] = '\0';
+    buff = strdup(buffer);
     commands_length = get_commands_length(buffer);
 
     // the length +1 is for NULL terminator at the end

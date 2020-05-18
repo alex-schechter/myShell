@@ -3,6 +3,7 @@
 pid_t pid;
 
 job *stopped_jobs;
+char *buff;
 
 int main(int argc, char **argv, char **env){
 
@@ -35,6 +36,8 @@ int main(int argc, char **argv, char **env){
 
         int len = _strlen(buffer);
 
+        
+
         //check if it is a background process
         if ((char)buffer[len-2] == '&'){
             background = 1;
@@ -48,6 +51,8 @@ int main(int argc, char **argv, char **env){
             print_shell(dolar);
             buffer = NULL;
             background = 0;
+            free(buff);
+            buff = NULL;
             continue;
         }
 
@@ -93,10 +98,6 @@ int main(int argc, char **argv, char **env){
                 exit(EXIT_SUCCESS);
             }
 
-
-
-
-            
             //check if the command is a full path to command
             else if (stat(commands[0], &check_file) == 0){
                 execve(commands[0], commands, NULL);
@@ -151,6 +152,8 @@ int main(int argc, char **argv, char **env){
         print_shell(dolar);
         buffer = NULL;
         background = 0;
+        free(buff);
+        buff = NULL;
     }
 
     return 0;
