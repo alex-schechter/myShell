@@ -29,7 +29,7 @@ void print_job(job *j);
 void print_jobs(job *jobs, char *job_id);
 int get_list_length(job *list);
 void add_job_to_list(job **job_list,char *status);
-void remove_job_from_list(job **job_list, int index_to_delete, int *size);
+void remove_job_from_list(job **job_list, int index_to_delete);
 void make_forground(job **job_list, char *job_id);
 
 

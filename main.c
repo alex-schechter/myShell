@@ -87,15 +87,14 @@ int main(int argc, char **argv, char **env){
 
             //check if the command is jobs
             else if(strcmp(commands[0], "jobs") == 0){
+                // printf("the address of stopped_jobs before jobs is %p\n", stopped_jobs);
                 print_jobs(stopped_jobs, commands[1]);
+                // printf("the address of stopped_jobs after jobs is %p\n", stopped_jobs);
                 exit(EXIT_SUCCESS);
             }
 
-            //check if the command is fg
-            else if(strcmp(commands[0], "fg") == 0){
-                make_forground(&stopped_jobs, commands[1]);
-                // exit(EXIT_SUCCESS);
-            }
+
+
 
             
             //check if the command is a full path to command
@@ -131,6 +130,15 @@ int main(int argc, char **argv, char **env){
                 if (chdir(commands[1])!=0){
                     printf("could not cd into '%s'\n", commands[1]);
                 }
+            }
+
+            //check if the command is fg
+            else if(strcmp(commands[0], "fg") == 0){
+                // printf("the address of stopped_jobs before fg is %p\n", stopped_jobs);
+                make_forground(&stopped_jobs, commands[1]);
+                // printf("the address of stopped_jobs after fg is %p\n", stopped_jobs);
+
+                // exit(EXIT_SUCCESS);
             }
 
             else{
