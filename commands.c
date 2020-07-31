@@ -21,6 +21,70 @@ int get_commands_length(char *buffer){
     return count;
 }
 
+int get_number_of_pipes(char *buffer){
+    int count = 0, i = 0, is_candidate = 0;
+    while (buffer[i] != '\0'){
+        if (buffer[i] == '|'){
+            is_candidate = 1;
+        }
+
+        if ((is_candidate==1 && buffer[i + 1] != '|') || (is_candidate==1 && buffer[i + 1] == '\0'))
+        {
+            ++count;
+            is_candidate = 0;
+        }   
+        i++;
+    }
+    return count;
+}
+
+void slice_str(const char * str, char * buffer, int start, int end)
+{
+    int j = 0;
+    int i;
+    for (i = start; i <= end; ++i ) {
+        buffer[j++] = str[i];
+    }
+    buffer[j] = 0;
+}
+
+process *split_by_pipe(char *buffer){
+    process *head = malloc(sizeof(process));
+    process *p = head;
+    size_t start = 0;
+    size_t end = 0;
+
+    while (end != strlen(buffer) + 1){
+        if (buffer[end] == '|' || buffer[end] == '\0'){
+            char *str = malloc(end-start + 1);
+            str[end-start] = '\0';
+            slice_str(buffer, str, start, end-1);
+            p->command = strdup(str);
+            if (p->command == NULL){
+                perror("Error allocating memory");
+                exit(EXIT_FAILURE);
+            }
+            if (buffer[end] != '\0'){
+                p->next = malloc(sizeof(process));
+                if (p->next==NULL){
+                    perror("Error allocating memory");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            
+            start = end+1;
+            ++end;
+
+            p = p->next;
+        }
+
+        else {
+            ++end;
+        }
+    }
+    return head;
+}
+
 char **parse_commands(char *buffer){
     char **commands = NULL;
     char *command;
@@ -29,6 +93,10 @@ char **parse_commands(char *buffer){
     
     buffer[_strlen(buffer) -1 ] = '\0';
     buff = strdup(buffer);
+    if (buff == NULL){
+        perror("Error allocating  memory");
+        exit(EXIT_FAILURE);
+    }
     commands_length = get_commands_length(buffer);
 
     // the length +1 is for NULL terminator at the end
@@ -83,7 +151,7 @@ void search_in_path(char **commands, char **env){
     int i=0;
     while (path_vars[i]){
         if (stat(path_vars[i], &check_file) == 0){
-            execve(path_vars[i], commands, NULL);
+            execvp(path_vars[i], commands);
             exit(EXIT_SUCCESS);
         }
         i++;

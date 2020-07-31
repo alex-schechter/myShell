@@ -125,8 +125,6 @@ void add_job_to_list(job **job_list,char *status){
         
     }
 
-    // printf("adding job with pid of: %d\n", pid);
-
     last_job->next = NULL;
     last_job->pid = pid;
     last_job->status = strdup(status);

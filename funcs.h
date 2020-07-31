@@ -13,6 +13,12 @@
 #define STOPPED "Stopped"
 #define DONE "Done"
 
+//every process is a commend that is splitted by pipe (|)
+typedef struct process{
+    char *command;
+    struct process *next;
+}process;
+
 typedef struct job{
     int job_num;
     int pid;
@@ -34,6 +40,8 @@ void continue_job(job **job_list, char *job_id);
 
 
 //commands
+int get_number_of_pipes(char *buffer);
+process *split_by_pipe(char *buffer);
 char **parse_commands(char *buffer);
 int get_commands_length(char *buffer);
 void search_in_path(char **commands, char **env);
@@ -63,3 +71,4 @@ int is_number(char *);
 void INThandler(int);
 void TSTPhandler(int);
 void CONThandler(int);
+void CHLDhandler(int);
