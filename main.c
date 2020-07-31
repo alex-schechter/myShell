@@ -20,14 +20,14 @@ int main(int argc, char **argv, char **env){
 
     /* Put our shell in its own process group in order to be
        placed in the fourground in our parent shell to enable job control */
-    // shell_pid = getpid();
-    // if (setpgid (shell_pid, shell_pid) < 0){
-    //       perror ("Couldn't put the shell in its own process group");
-    //       exit (1);
-    // }
+    shell_pid = getpid();
+    if (setpgid (shell_pid, shell_pid) < 0){
+          perror ("Couldn't put the shell in its own process group");
+          exit (1);
+    }
 
-    // // Get vontroll of the terminal
-    // tcsetpgrp(0, shell_pid);
+    // Get vontroll of the terminal
+    tcsetpgrp(0, shell_pid);
 
     buffer = NULL;
     length = 0;
@@ -39,8 +39,8 @@ int main(int argc, char **argv, char **env){
     signal (SIGCHLD, CHLDhandler);
 
     // ignore signals
-    // signal (SIGTTIN, SIG_IGN);
-    // signal (SIGTTOU, SIG_IGN);
+    signal (SIGTTIN, SIG_IGN);
+    signal (SIGTTOU, SIG_IGN);
 
     print_shell(dolar);
 
