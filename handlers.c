@@ -14,7 +14,7 @@ void INThandler (int sig)
 // Ctrl Z handler
 void TSTPhandler(int sig){
     (void)sig;
-    printf("got signal\n");
+    printf("adding process to list: %d\n", pid);
     add_job_to_list(&stopped_jobs, STOPPED);
 }
 
@@ -25,6 +25,17 @@ void CONThandler(int sig){
 
 void CHLDhandler(int sig){
     (void)sig;
-    print_shell("$ ");
-
+    int status;
+    int pid;
+    while ((pid=waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0)
+    {
+       printf("process %d died\n", pid);
+       job *j = find_job_by_pid(stopped_jobs, pid);
+       if (j){
+            printf("removing job from list 1: %d\n", j->job_num);
+            remove_job_from_list(&stopped_jobs, j->job_num);
+       }
+       
+    }
+    
 }

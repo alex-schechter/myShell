@@ -20,14 +20,14 @@ int main(int argc, char **argv, char **env){
 
     /* Put our shell in its own process group in order to be
        placed in the fourground in our parent shell to enable job control */
-    // shell_pid = getpid();
-    // if (setpgid (shell_pid, shell_pid) < 0){
-    //       perror ("Couldn't put the shell in its own process group");
-    //       exit (1);
-    // }
+    shell_pid = getpid();
+    if (setpgid (shell_pid, shell_pid) < 0){
+          perror ("Couldn't put the shell in its own process group");
+          exit (1);
+    }
 
-    // // Get vontroll of the terminal
-    // tcsetpgrp(0, shell_pid);
+    // Get vontroll of the terminal
+    tcsetpgrp(0, shell_pid);
 
     buffer = NULL;
     length = 0;
@@ -57,12 +57,9 @@ int main(int argc, char **argv, char **env){
             continue;
         }
 
-        pid = waitpid(-1, &status, WNOHANG|WUNTRACED);
-
+        //check if it is a background process
         int len = _strlen(buffer);
         buffer[len] = '\0';
-
-        //check if it is a background process
         if ((char)buffer[len-2] == '&'){
             background = 1;
             buffer[len-2] = '\n';
@@ -83,6 +80,7 @@ int main(int argc, char **argv, char **env){
         commandsSplitedByPipes = split_by_pipe(buffer);
 
         if (commandsSplitedByPipes == NULL){
+            printf("could not background the command if it is not the last one\n");
             print_shell(dolar);
             buffer = NULL;
             background = 0;
@@ -95,7 +93,16 @@ int main(int argc, char **argv, char **env){
 
         while (commandsSplitedByPipes != NULL){
             //parse the commands from input
-            commands = parse_commands(commandsSplitedByPipes->command);
+            char *copy = strdup(commandsSplitedByPipes->command);
+            if (copy == NULL){
+                print_shell(dolar);
+                buffer = NULL;
+                background = 0;
+                free(buff);
+                buff = NULL;
+                break;
+            }
+            commands = parse_commands(copy);
             if (commands == NULL){
                 print_shell(dolar);
                 free(buffer);
@@ -104,7 +111,7 @@ int main(int argc, char **argv, char **env){
                 free(buff);
                 buff = NULL;
                 free_processes(commandsSplitedByPipes);
-                continue;
+                break;
             }
 
             if (numPipes > 0){
@@ -132,11 +139,6 @@ int main(int argc, char **argv, char **env){
                 signal(SIGCONT, SIG_DFL);
 
                 if (numPipes > 0){
-                    // if this is not the last command and & is in the command, this is invalid
-                    if (commandsSplitedByPipes->next && background == 1){
-                        printf("could not background not last command\n");
-                        exit(EXIT_SUCCESS);
-                    }
 
                     // if this is the first command
                     if (j==0){
@@ -193,19 +195,34 @@ int main(int argc, char **argv, char **env){
 
                 //check if the command is fg
                 else if(strcmp(commands[0], "fg") == 0){
-                    continue_job(&stopped_jobs, commands[1]);
+                    int job_num = check_job_number(commands[1]);
+                    if (job_num == -1){
+                        printf("no such job: %s", commands[1]);
+                        exit(EXIT_FAILURE);
+                    }
+                    continue_job(&stopped_jobs, job_num);
                     exit(EXIT_SUCCESS);
                 }
 
                 //check if the command is bg
                 else if(strcmp(commands[0], "bg") == 0){
-                    continue_job(&stopped_jobs, commands[1]);
+                    int job_num = check_job_number(commands[1]);
+                    if (job_num == -1){
+                        printf("no such job: %s", commands[1]);
+                        exit(EXIT_FAILURE);
+                    }
+                    continue_job(&stopped_jobs, job_num);
                     exit(EXIT_SUCCESS);
                 }
 
                 //check if the command is jobs
                 else if(strcmp(commands[0], "jobs") == 0){
-                    print_jobs(stopped_jobs, commands[1]);
+                    int job_num = check_job_number(commands[1]);
+                    if (job_num == -1){
+                        printf("no such job: %s\n", commands[1]);
+                        exit(EXIT_FAILURE);
+                    }
+                    print_jobs(stopped_jobs, job_num);
                     exit(EXIT_SUCCESS);
                 }
 
@@ -251,6 +268,7 @@ int main(int argc, char **argv, char **env){
 
                 if (background == 0){
                     pid = waitpid(-1, &status, WUNTRACED);
+                    
                 }
 
                 else{
@@ -276,13 +294,24 @@ int main(int argc, char **argv, char **env){
 
                 //check if the command is fg
                 else if(strcmp(commands[0], "fg") == 0){
-                    remove_job_from_list(&stopped_jobs, commands[1]);
-                    waitpid(-1, NULL, 0); 
+                    int job_num = check_job_number(commands[1]);
+                    if (job_num == -1){
+                        printf("wrong job id: %s", commands[1]);
+                        exit(EXIT_FAILURE);
+                    }
+                     
+                    remove_job_from_list(&stopped_jobs, job_num);
+                    pid = waitpid(-1, &status, WUNTRACED);
                 }
 
                 //check if the command is fg
                 else if(strcmp(commands[0], "bg") == 0){
-                    remove_job_from_list(&stopped_jobs, commands[1]);
+                    int job_num = check_job_number(commands[1]);
+                    if (job_num == -1){
+                        printf("wrong job id: %s", commands[1]);
+                        exit(EXIT_FAILURE);
+                    }
+                    remove_job_from_list(&stopped_jobs, job_num);
                 }
 
                 else{
@@ -298,7 +327,7 @@ int main(int argc, char **argv, char **env){
             commandsSplitedByPipes = commandsSplitedByPipes->next;
             j++;
         }
-
+        print_shell(dolar);
         buffer = NULL;
         background = 0;
         free(buff);

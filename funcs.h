@@ -28,15 +28,17 @@ typedef struct job{
 }job;
 
 //jobs
-job *find_job_by_id(job *job_list, char *job_id);
+job *find_job_by_id(job *job_list, int job_id);
+job *find_job_by_pid(job *job_list, int pid);
 job *get_last_job(job *job_list);
 void free_jobs(job *job_list);
 void print_job(job *j);
-void print_jobs(job *jobs, char *job_id);
+void print_jobs(job *jobs, int job_id);
 int get_list_length(job *list);
 void add_job_to_list(job **job_list,char *status);
-void remove_job_from_list(job **job_list, char *job_num);
-void continue_job(job **job_list, char *job_id);
+void remove_job_from_list(job **job_list, int job_num);
+void continue_job(job **job_list, int job_id);
+int check_job_number(char *job_number);
 
 
 //commands

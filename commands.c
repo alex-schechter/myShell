@@ -53,8 +53,10 @@ process *split_by_pipe(char *buffer){
     process *p = head;
     size_t start = 0;
     size_t end = 0;
+    int candidate = 0;
 
     while (end != strlen(buffer) + 1){
+
         if (buffer[end] == '|' || buffer[end] == '\0'){
             char *str = malloc(end-start + 1);
             str[end-start] = '\0';
@@ -64,6 +66,15 @@ process *split_by_pipe(char *buffer){
                 perror("Error allocating memory");
                 exit(EXIT_FAILURE);
             }
+
+            if (strchr(p->command, '&')){
+                candidate = 1;
+            }
+
+            if (candidate == 1 && buffer[end] == '|'){
+                return NULL;
+            }
+
             if (buffer[end] != '\0'){
                 p->next = malloc(sizeof(process));
                 if (p->next==NULL){
