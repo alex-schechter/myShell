@@ -129,6 +129,10 @@ void add_job_to_list(job **job_list,char *status){
     last_job->pid = pid;
     last_job->status = strdup(status);
     last_job->command = strdup(buff);
+    if (!last_job->status || !last_job->command){
+        perror("could not strdup\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 

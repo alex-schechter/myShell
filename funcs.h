@@ -62,6 +62,7 @@ int get_path_length(char *path);
 void commands_is_null(char *buffer);
 void exit_cmd(char *buffer, char **commands);
 int _strlen(char *buffer);
+void free_processes(process* head);
 void free_duble_ptr(char **ptr);
 void print_shell(char *);
 int is_number(char *);

@@ -21,6 +21,17 @@ int _strlen(char *buffer){
     return counter;
 }
 
+void free_processes(process* head){
+    process* tmp;
+    while (head != NULL)
+    {
+        tmp = head;
+        head = head->next;
+        free(tmp);
+    }
+    head = NULL;
+}
+
 void free_duble_ptr(char **ptr){
     int i=0;
     while (ptr[i]){

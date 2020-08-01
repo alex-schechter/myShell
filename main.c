@@ -20,14 +20,14 @@ int main(int argc, char **argv, char **env){
 
     /* Put our shell in its own process group in order to be
        placed in the fourground in our parent shell to enable job control */
-    shell_pid = getpid();
-    if (setpgid (shell_pid, shell_pid) < 0){
-          perror ("Couldn't put the shell in its own process group");
-          exit (1);
-    }
+    // shell_pid = getpid();
+    // if (setpgid (shell_pid, shell_pid) < 0){
+    //       perror ("Couldn't put the shell in its own process group");
+    //       exit (1);
+    // }
 
-    // Get vontroll of the terminal
-    tcsetpgrp(0, shell_pid);
+    // // Get vontroll of the terminal
+    // tcsetpgrp(0, shell_pid);
 
     buffer = NULL;
     length = 0;
@@ -48,6 +48,13 @@ int main(int argc, char **argv, char **env){
 
         if (characters == EOF){
             exit(EXIT_FAILURE);
+        }
+
+        if (strncmp(buffer, "\n", strlen(buffer)) == 0){
+            free(buffer);
+            buffer = NULL;
+            print_shell("$ ");
+            continue;
         }
 
         pid = waitpid(-1, &status, WNOHANG|WUNTRACED);
@@ -91,10 +98,12 @@ int main(int argc, char **argv, char **env){
             commands = parse_commands(commandsSplitedByPipes->command);
             if (commands == NULL){
                 print_shell(dolar);
+                free(buffer);
                 buffer = NULL;
                 background = 0;
                 free(buff);
                 buff = NULL;
+                free_processes(commandsSplitedByPipes);
                 continue;
             }
 
@@ -109,8 +118,6 @@ int main(int argc, char **argv, char **env){
                 }
             }
             
-            
-
             //create a new process for the command
             pid = fork();
 
@@ -125,6 +132,12 @@ int main(int argc, char **argv, char **env){
                 signal(SIGCONT, SIG_DFL);
 
                 if (numPipes > 0){
+                    // if this is not the last command and & is in the command, this is invalid
+                    if (commandsSplitedByPipes->next && background == 1){
+                        printf("could not background not last command\n");
+                        exit(EXIT_SUCCESS);
+                    }
+
                     // if this is the first command
                     if (j==0){
                         dup2(filedes2[1], STDOUT_FILENO);
@@ -281,16 +294,17 @@ int main(int argc, char **argv, char **env){
             
             process *temp = commandsSplitedByPipes;
             free(temp);
+            temp = NULL;
             commandsSplitedByPipes = commandsSplitedByPipes->next;
             j++;
         }
 
-        print_shell(dolar);
         buffer = NULL;
         background = 0;
         free(buff);
         buff = NULL;
         free(commandsSplitedByPipes);
+        commandsSplitedByPipes = NULL;
     }
 
     return 0;
