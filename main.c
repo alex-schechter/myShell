@@ -189,8 +189,8 @@ int main(int argc, char **argv, char **env){
                         exit(0);
                     }           
                     // dup2() copies content of fdo in input of preceeding file
-                    dup2(fd0, 0); // STDIN_FILENO here can be replaced by 0 
-                    close(fd0); // necessary
+                    dup2(fd0, STDIN_FILENO); 
+                    close(fd0);
                 }
 
                 //if '>' char was found in string inputted by user 
