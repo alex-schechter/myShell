@@ -8,8 +8,7 @@ char *buff;
 
 int main(int argc, char **argv, char **env){
 
-    char **commands;
-    process *commandsSplitedByPipes;
+    process *process_list;
     char *buffer;
     char *env_command="env", *exit_command="exit", *dolar="$ ";
     ssize_t characters; 
@@ -77,9 +76,17 @@ int main(int argc, char **argv, char **env){
         int filedes[2]; // pos. 0 output, pos. 1 input of the pipe
 	    int filedes2[2];
 
-        commandsSplitedByPipes = split_by_pipe(buffer);
+        buff = strdup(buffer);
+        if (buff == NULL){
+            perror("could not aloocate memory\n");
+            exit(EXIT_FAILURE);
+        }
+        if (buff[len-1] == '\n'){
+            buff[len-1] = '\0';
+        }
+        process_list = split_by_pipe(buffer);
 
-        if (commandsSplitedByPipes == NULL){
+        if (process_list == NULL){
             printf("could not background the command if it is not the last one\n");
             print_shell(dolar);
             buffer = NULL;
@@ -91,28 +98,7 @@ int main(int argc, char **argv, char **env){
 
         int j=0;
 
-        while (commandsSplitedByPipes != NULL){
-            //parse the commands from input
-            char *copy = strdup(commandsSplitedByPipes->command);
-            if (copy == NULL){
-                print_shell(dolar);
-                buffer = NULL;
-                background = 0;
-                free(buff);
-                buff = NULL;
-                break;
-            }
-            commands = parse_commands(copy);
-            if (commands == NULL){
-                print_shell(dolar);
-                free(buffer);
-                buffer = NULL;
-                background = 0;
-                free(buff);
-                buff = NULL;
-                free_processes(commandsSplitedByPipes);
-                break;
-            }
+        while (process_list != NULL){
 
             if (numPipes > 0){
                 // for odd j
@@ -138,7 +124,15 @@ int main(int argc, char **argv, char **env){
                 signal(SIGTSTP, SIG_DFL);
                 signal(SIGCONT, SIG_DFL);
 
+                // vars for redirects
+                int fd0,fd1,i,in=0,out=0;
+                char input[64],output[64];
+
                 if (numPipes > 0){
+
+                    printf("the pid is: %d\n", getpid());
+                    printf("the pgid is: %d\n", getpgrp());
+
 
                     // if this is the first command
                     if (j==0){
@@ -146,12 +140,12 @@ int main(int argc, char **argv, char **env){
                     }
 
                     // if it is the last command
-                    else if (commandsSplitedByPipes->next == NULL){
-                        // for odd number of commands
+                    else if (process_list->next == NULL){
+                        // for odd number of process_list->argv
                         if ((numPipes+1) % 2 != 0){ 
                             dup2(filedes[0],STDIN_FILENO);
                         }
-                        // for even number of commands
+                        // for even number of process_list->argv
                         else{ 
                             dup2(filedes2[0],STDIN_FILENO);
                         }
@@ -170,34 +164,77 @@ int main(int argc, char **argv, char **env){
                     }
                 }
 
+                for (i=0; process_list->argv[i]!=NULL;i++){
+                    if(strcmp(process_list->argv[i],"<")==0)
+                        {        
+                            process_list->argv[i]=NULL;
+                            strcpy(input,process_list->argv[i+1]);
+                            in=2;           
+                        }               
+
+                        if(strcmp(process_list->argv[i],">")==0)
+                        {      
+                            process_list->argv[i]=NULL;
+                            strcpy(output,process_list->argv[i+1]);
+                            out=2;
+                        }      
+                }
+
+                //if '<' char was found in string inputted by user
+                if(in)
+                {   
+                    // fdo is file-descriptor
+                    if ((fd0 = open(input, O_RDONLY, 0)) < 0) {
+                        perror("Couldn't open input file");
+                        exit(0);
+                    }           
+                    // dup2() copies content of fdo in input of preceeding file
+                    dup2(fd0, 0); // STDIN_FILENO here can be replaced by 0 
+                    close(fd0); // necessary
+                }
+
+                //if '>' char was found in string inputted by user 
+                if (out)
+                {
+                    if ((fd1 = creat(output , 0644)) < 0) {
+                        perror("Couldn't open the output file");
+                        exit(0);
+                    }           
+
+                    dup2(fd1, STDOUT_FILENO); // 1 here can be replaced by STDOUT_FILENO
+                    close(fd1);
+                }
+
                 if (background){
+
                     setpgid(0,0);
                 }
                 
-                if (commands == NULL){
+                if (process_list->argv == NULL){
+                    // TODO decide what to do
                     commands_is_null(buffer);
                 }
                 
                 //check if the command is exit
-                else if (strcmp(commands[0], exit_command) == 0){
-                    exit_cmd(buffer, commands);
+                else if (strcmp(process_list->argv[0], exit_command) == 0){
+                    exit_cmd(buffer, process_list->argv);
                 }
 
                 //check if the command is env
-                else if (strcmp(commands[0], env_command) == 0){
-                    print_env(buffer, commands, env);
+                else if (strcmp(process_list->argv[0], env_command) == 0){
+                    print_env(buffer, process_list->argv, env);
                 }
 
                 //check if the command is cd
-                else if(strcmp(commands[0], "cd") == 0){
+                else if(strcmp(process_list->argv[0], "cd") == 0){
                     exit(EXIT_SUCCESS);
                 }
 
                 //check if the command is fg
-                else if(strcmp(commands[0], "fg") == 0){
-                    int job_num = check_job_number(commands[1]);
+                else if(strcmp(process_list->argv[0], "fg") == 0){
+                    int job_num = check_job_number(process_list->argv[1]);
                     if (job_num == -1){
-                        printf("no such job: %s", commands[1]);
+                        printf("no such job: %s", process_list->argv[1]);
                         exit(EXIT_FAILURE);
                     }
                     continue_job(&stopped_jobs, job_num);
@@ -205,10 +242,10 @@ int main(int argc, char **argv, char **env){
                 }
 
                 //check if the command is bg
-                else if(strcmp(commands[0], "bg") == 0){
-                    int job_num = check_job_number(commands[1]);
+                else if(strcmp(process_list->argv[0], "bg") == 0){
+                    int job_num = check_job_number(process_list->argv[1]);
                     if (job_num == -1){
-                        printf("no such job: %s", commands[1]);
+                        printf("no such job: %s", process_list->argv[1]);
                         exit(EXIT_FAILURE);
                     }
                     continue_job(&stopped_jobs, job_num);
@@ -216,10 +253,10 @@ int main(int argc, char **argv, char **env){
                 }
 
                 //check if the command is jobs
-                else if(strcmp(commands[0], "jobs") == 0){
-                    int job_num = check_job_number(commands[1]);
+                else if(strcmp(process_list->argv[0], "jobs") == 0){
+                    int job_num = check_job_number(process_list->argv[1]);
                     if (job_num == -1){
-                        printf("no such job: %s\n", commands[1]);
+                        printf("no such job: %s\n", process_list->argv[1]);
                         exit(EXIT_FAILURE);
                     }
                     print_jobs(stopped_jobs, job_num);
@@ -227,8 +264,8 @@ int main(int argc, char **argv, char **env){
                 }
 
                 //check if the command is a full path to command
-                else if (stat(commands[0], &check_file) == 0){
-                    if (execvp(commands[0], commands) < 0){
+                else if (stat(process_list->argv[0], &check_file) == 0){
+                    if (execvp(process_list->argv[0], process_list->argv) < 0){
                         perror("error in execvp\n");
                         exit(EXIT_FAILURE);
                     }
@@ -236,7 +273,7 @@ int main(int argc, char **argv, char **env){
 
                 //need to search the command in every directory from PATH and if is there run it
                 else{
-                    search_in_path(commands, env);
+                    search_in_path(process_list->argv, env);
                 }
                 
             }
@@ -249,7 +286,7 @@ int main(int argc, char **argv, char **env){
                     if (j == 0){
                         close(filedes2[1]);
                     }
-                    else if (commandsSplitedByPipes->next == NULL){
+                    else if (process_list->next == NULL){
                         if ((numPipes+1) % 2 != 0){					
                             close(filedes[0]);
                         }else{					
@@ -272,31 +309,35 @@ int main(int argc, char **argv, char **env){
                 }
 
                 else{
-                    add_job_to_list(&stopped_jobs, RUNNING);
+                    // only if this is the first process of the list (even if is just one command (e.g ls &), add to the list of jobs)
+                    if (j==0){
+                        add_job_to_list(&stopped_jobs, RUNNING);
+                    }
+                    
                 }
                 
-                if (commands == NULL){
+                if (process_list->argv == NULL){
                     free(buffer);
-                    free_duble_ptr(commands);
+                    free_duble_ptr(process_list->argv);
                 }
 
                 //check if the command is exit
-                else if (strcmp(commands[0], exit_command) == 0){
-                    exit_cmd(buffer, commands);
+                else if (strcmp(process_list->argv[0], exit_command) == 0){
+                    exit_cmd(buffer, process_list->argv);
                 }
 
                 //check if the command is cd
-                else if(strcmp(commands[0], "cd") == 0){
-                    if (chdir(commands[1])!=0){
-                        printf("could not cd into '%s'\n", commands[1]);
+                else if(strcmp(process_list->argv[0], "cd") == 0){
+                    if (chdir(process_list->argv[1])!=0){
+                        printf("could not cd into '%s'\n", process_list->argv[1]);
                     }
                 }
 
                 //check if the command is fg
-                else if(strcmp(commands[0], "fg") == 0){
-                    int job_num = check_job_number(commands[1]);
+                else if(strcmp(process_list->argv[0], "fg") == 0){
+                    int job_num = check_job_number(process_list->argv[1]);
                     if (job_num == -1){
-                        printf("wrong job id: %s", commands[1]);
+                        printf("wrong job id: %s", process_list->argv[1]);
                         exit(EXIT_FAILURE);
                     }
                      
@@ -305,10 +346,10 @@ int main(int argc, char **argv, char **env){
                 }
 
                 //check if the command is fg
-                else if(strcmp(commands[0], "bg") == 0){
-                    int job_num = check_job_number(commands[1]);
+                else if(strcmp(process_list->argv[0], "bg") == 0){
+                    int job_num = check_job_number(process_list->argv[1]);
                     if (job_num == -1){
-                        printf("wrong job id: %s", commands[1]);
+                        printf("wrong job id: %s", process_list->argv[1]);
                         exit(EXIT_FAILURE);
                     }
                     remove_job_from_list(&stopped_jobs, job_num);
@@ -316,24 +357,24 @@ int main(int argc, char **argv, char **env){
 
                 else{
                     free(buffer);
-                    free_duble_ptr(commands);
+                    free_duble_ptr(process_list->argv);
                 }
 
-            }
-            
-            process *temp = commandsSplitedByPipes;
+            }            
+            process *temp = process_list;
             free(temp);
             temp = NULL;
-            commandsSplitedByPipes = commandsSplitedByPipes->next;
+            process_list = process_list->next;            
             j++;
         }
-        print_shell(dolar);
         buffer = NULL;
         background = 0;
         free(buff);
         buff = NULL;
-        free(commandsSplitedByPipes);
-        commandsSplitedByPipes = NULL;
+        free_processes(process_list);
+        process_list = NULL;
+        print_shell(dolar);
+
     }
 
     return 0;

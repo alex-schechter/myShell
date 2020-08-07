@@ -14,8 +14,11 @@ void INThandler (int sig)
 // Ctrl Z handler
 void TSTPhandler(int sig){
     (void)sig;
+    // signal(SIGTSTP, SIG_DFL);
+    // killpg(getpgrp(), SIGTSTP);
     printf("adding process to list: %d\n", pid);
     add_job_to_list(&stopped_jobs, STOPPED);
+    print_shell("$ ");
 }
 
 void CONThandler(int sig){

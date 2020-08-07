@@ -50,6 +50,7 @@ void slice_str(const char * str, char * buffer, int start, int end)
 
 process *split_by_pipe(char *buffer){
     process *head = malloc(sizeof(process));
+    head->next = NULL;
     process *p = head;
     size_t start = 0;
     size_t end = 0;
@@ -61,13 +62,13 @@ process *split_by_pipe(char *buffer){
             char *str = malloc(end-start + 1);
             str[end-start] = '\0';
             slice_str(buffer, str, start, end-1);
-            p->command = strdup(str);
-            if (p->command == NULL){
+            p->argv = parse_commands(strdup(str));
+            if (p->argv == NULL){
                 perror("Error allocating memory");
                 exit(EXIT_FAILURE);
             }
 
-            if (strchr(p->command, '&')){
+            if (strchr(str, '&')){
                 candidate = 1;
             }
 
@@ -76,6 +77,7 @@ process *split_by_pipe(char *buffer){
             }
 
             if (buffer[end] != '\0'){
+                printf("creating new node for command\n");
                 p->next = malloc(sizeof(process));
                 if (p->next==NULL){
                     perror("Error allocating memory");
@@ -85,7 +87,6 @@ process *split_by_pipe(char *buffer){
             
             start = end+1;
             ++end;
-
             p = p->next;
         }
 
@@ -103,7 +104,6 @@ char **parse_commands(char *buffer){
     int commands_length;
     
     buffer[_strlen(buffer) -1 ] = '\0';
-    buff = strdup(buffer);
     if (buff == NULL){
         perror("Error allocating  memory");
         exit(EXIT_FAILURE);

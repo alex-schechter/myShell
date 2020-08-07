@@ -6,6 +6,7 @@
 #include <sys/wait.h> 
 #include <signal.h>
 #include <ctype.h>
+#include <fcntl.h>
 
 #define MAX_SIZE 1024
 
@@ -13,17 +14,20 @@
 #define STOPPED "Stopped"
 #define DONE "Done"
 
-//every process is a commend that is splitted by pipe (|)
+//every process is a commend that is splitted by pipe (|) or a regular command  (e.g ls)
 typedef struct process{
-    char *command;
+    char **argv;
     struct process *next;
+    pid_t pid;
 }process;
 
+// job is a group of processes
 typedef struct job{
-    int job_num;
-    int pid;
     char *status;
     char *command;
+    int job_num;
+    pid_t pgid;
+    process *first_process;
     struct job *next;
 }job;
 

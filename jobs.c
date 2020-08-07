@@ -21,7 +21,7 @@ job *find_job_by_pid(job *job_list, int pid){
     job *curr = job_list;
 
     while (curr!= NULL){
-        if (curr->pid == pid){
+        if (curr->pgid == pid){
             return curr;
         }
         curr = curr->next;
@@ -55,7 +55,7 @@ void print_no_such_job(int job_id){
 }
 
 void print_job(job *j){
-    printf("[%d]+ %s %s (%d)\n", j->job_num, j->status, j->command, j->pid);
+    printf("[%d]+ %s %s (%d)\n", j->job_num, j->status, j->command, j->pgid);
 }
 
 void print_jobs(job *job_list, int job_id){
@@ -124,7 +124,7 @@ void add_job_to_list(job **job_list,char *status){
     }
 
     last_job->next = NULL;
-    last_job->pid = pid;
+    last_job->pgid = pid;
     last_job->status = strdup(status);
     last_job->command = strdup(buff);
     if (!last_job->status || !last_job->command){
@@ -181,13 +181,13 @@ void continue_job(job **job_list, int job_id){
     
     if (job_id == 0){        
         job_to_remove = get_last_job(*job_list);
-        pid_to_cont = job_to_remove->pid;
+        pid_to_cont = job_to_remove->pgid;
         // printf("forgrounding process with pid: %d\n", pid_to_cont);
     }
 
     else{
         job_to_remove = find_job_by_id(*job_list, job_id);
-        pid_to_cont = job_to_remove->pid;
+        pid_to_cont = job_to_remove->pgid;
         // printf("forgrounding process with pid: %d\n", pid_to_cont);
     }
     

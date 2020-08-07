@@ -27,6 +27,7 @@ void free_processes(process* head){
     {
         tmp = head;
         head = head->next;
+        free_duble_ptr(tmp->argv);
         free(tmp);
     }
     head = NULL;
