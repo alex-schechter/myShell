@@ -25,7 +25,7 @@ int main(int argc, char **argv, char **env){
           exit (1);
     }
 
-    // Get vontroll of the terminal
+    // Get controll of the terminal
     tcsetpgrp(0, shell_pid);
 
     buffer = NULL;
@@ -174,6 +174,7 @@ int main(int argc, char **argv, char **env){
 
                         if(strcmp(process_list->argv[i],">")==0)
                         {      
+                            
                             process_list->argv[i]=NULL;
                             strcpy(output,process_list->argv[i+1]);
                             out=2;
@@ -366,6 +367,7 @@ int main(int argc, char **argv, char **env){
             temp = NULL;
             process_list = process_list->next;            
             j++;
+            
         }
         buffer = NULL;
         background = 0;

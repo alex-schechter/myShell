@@ -67,6 +67,7 @@ process *split_by_pipe(char *buffer){
                 perror("Error allocating memory");
                 exit(EXIT_FAILURE);
             }
+            p->stopped = 0;
 
             if (strchr(str, '&')){
                 candidate = 1;

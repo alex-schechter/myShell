@@ -35,10 +35,10 @@ void CHLDhandler(int sig){
        printf("process %d died\n", pid);
        job *j = find_job_by_pid(stopped_jobs, pid);
        if (j){
-            printf("removing job from list 1: %d\n", j->job_num);
+            printf("removing job from list: %d\n", j->job_num);
             remove_job_from_list(&stopped_jobs, j->job_num);
        }
        
     }
-    
+
 }

@@ -19,6 +19,7 @@ typedef struct process{
     char **argv;
     struct process *next;
     pid_t pid;
+    int stopped;
 }process;
 
 // job is a group of processes
