@@ -1,24 +1,62 @@
 #include "funcs.h"
 
+/* Built in exit command */
+void exit_cmd(char **argv){
+    free_duble_ptr(argv);
+    exit(EXIT_SUCCESS);
+}
+
+/* Built in cd command */
+void cd_cmd(char **argv){
+    if (argv[1] == NULL)
+        fprintf(stderr, "Please specify the directory\n");
+
+    else {
+        if (chdir(argv[1]) > 0)
+            perror("cd error: ");
+    }
+}
+
+
+void env_cmd(char **argv){
+    return;
+}
+void jobs_cmd(char **argv){
+    (void)argv;
+    print_jobs();
+    return;
+}
+void fg_cmd(char **argv){
+    return;
+}
+void bg_cmd(char **argv){
+    return;
+}
+
+// /* Built in jobs command */
+// void jobs_cmd(char **argv){
+    
+//     exit(EXIT_SUCCESS);
+// }
+
+// /* Built in fg command */
+// void fg_cmd(char **argv){
+//     free(buffer);
+//     free_duble_ptr(commands);
+//     exit(EXIT_SUCCESS);
+// }
+
+// /* Built in bg command */
+// void bg_cmd(char **argv){
+//     free(buffer);
+//     free_duble_ptr(commands);
+//     exit(EXIT_SUCCESS);
+// }
 
 void commands_is_null(char *buffer){
     printf("command is null\n");
     free(buffer);
-}
-
-void exit_cmd(char *buffer, char **commands){
-    free(buffer);
-    free_duble_ptr(commands);
-    exit(EXIT_SUCCESS);
-}
-
-int _strlen(char *buffer){
-    int i=0, counter=0;
-    while(buffer[i] != '\0'){
-        ++counter;
-        ++i;
-    }
-    return counter;
+    buffer = NULL;
 }
 
 void free_processes(process* head){
@@ -28,7 +66,9 @@ void free_processes(process* head){
         tmp = head;
         head = head->next;
         free_duble_ptr(tmp->argv);
+        tmp->argv = NULL;
         free(tmp);
+        tmp = NULL;
     }
     head = NULL;
 }
@@ -37,9 +77,11 @@ void free_duble_ptr(char **ptr){
     int i=0;
     while (ptr[i]){
         free(ptr[i]);
+        ptr[i] = NULL;
         i++;
     }
     free(ptr);
+    ptr = NULL;
 }
 
 void print_shell(char *dolar){
@@ -68,6 +110,14 @@ void print_shell(char *dolar){
     write(STDOUT_FILENO, ":", 1);
     write(STDOUT_FILENO, blue, strlen(cwd)+strlen("\033")+strlen("\x1B[34m")-1);
     write(STDOUT_FILENO, white, strlen(white)-1);
+}
+
+int _strlen(char *buffer){
+    int i=0;
+    while(buffer[i] != '\0'){
+        ++i;
+    }
+    return i;
 }
 
 int is_number(char *str){

@@ -8,6 +8,8 @@ void print_env(char *buffer, char **commands, char **env){
     }
     free(buffer);
     free_duble_ptr(commands);
+    buffer = NULL;
+    commands = NULL;
     exit (EXIT_SUCCESS);
 }
 

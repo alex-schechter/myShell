@@ -67,7 +67,9 @@ process *split_by_pipe(char *buffer){
                 perror("Error allocating memory");
                 exit(EXIT_FAILURE);
             }
+
             p->stopped = 0;
+            p->finished = 0;
 
             if (strchr(str, '&')){
                 candidate = 1;
@@ -105,10 +107,6 @@ char **parse_commands(char *buffer){
     int commands_length;
     
     buffer[_strlen(buffer) -1 ] = '\0';
-    if (buff == NULL){
-        perror("Error allocating  memory");
-        exit(EXIT_FAILURE);
-    }
     commands_length = get_commands_length(buffer);
 
     // the length +1 is for NULL terminator at the end
@@ -116,13 +114,15 @@ char **parse_commands(char *buffer){
     if (commands == NULL){
         perror("could not allocate memory");
         free(buffer);
+        buffer = NULL;
         exit(EXIT_FAILURE);
     }
 
     //split the commands by ' '
     command = strtok(buffer, " ");
     if (command == NULL){
-        free(commands);
+        free_duble_ptr(commands);
+        commands = NULL;
         return NULL;
     }
 
@@ -130,6 +130,7 @@ char **parse_commands(char *buffer){
     while (command != NULL){
         if (command == NULL){
             free_duble_ptr(commands);
+            commands = NULL;
             return NULL;
         }
         commands[i] = (char *)malloc(sizeof(char) * strlen(command) + 1);
@@ -157,6 +158,9 @@ void search_in_path(char **commands, char **env){
         free_duble_ptr(commands);
         free_duble_ptr(path_vars);
         free(path);
+        commands = NULL;
+        path_vars = NULL;
+        path = NULL;
         exit(EXIT_FAILURE);
     }
 
@@ -171,5 +175,7 @@ void search_in_path(char **commands, char **env){
     printf("Command '%s' not found\n", commands[0]);
     free_duble_ptr(commands);
     free_duble_ptr(path_vars);
+    commands = NULL;
+    path_vars = NULL;
     exit(EXIT_FAILURE);
 }
