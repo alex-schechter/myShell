@@ -58,7 +58,7 @@ int check_job_number(char *job_number);
 
 job *create_job_from_command(char *command);
 job *get_the_nth_job(int job_number);
-void launch_job(job *j, int foreground);
+void launch_job(job *j, int foreground, char **env);
 void wait_for_job (job *j);
 void format_job_info (job *j, const char *status);
 void do_job_notification ();

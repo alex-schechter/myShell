@@ -1,4 +1,11 @@
 # myShell
-this is a simple shell to practice my c 
+This is a simple shell to practice my c.
 
-in order to compile run the command `gcc -g -Wall -Wextra -pedantic *.c` and then run the a.out file
+The shell supports:
+1. regular commands (ls, cat, etc...)
+2. built in commands (cd, exit, history)
+3. pipes
+4. job control (fg, bg, jobs)
+5. input/output redirection
+
+in order to compile run the command `make && ./a.out` and then run the a.out file

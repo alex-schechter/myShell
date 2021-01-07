@@ -254,7 +254,7 @@ int check_job_number(char *job_number){
 }
 
 
-void launch_job (job *j, int foreground) {
+void launch_job (job *j, int foreground, char **env) {
     pid_t pid;
     int mypipe[2], infile, outfile;
     int first_process=1;
@@ -283,7 +283,10 @@ void launch_job (job *j, int foreground) {
         /* Check for built in functions ( exit, env, cd, jobs ) */
         for (int i = 0; i<built_in_funcs_count(); i++){
             if (strcmp(p->argv[0], built_in_commands[i]) == 0) {
-                (*built_in_funcs[i])(p->argv);
+                if (strcmp(p->argv[0], "env") == 0)
+                    (*built_in_funcs[i])(env);
+                else
+                    (*built_in_funcs[i])(p->argv);
                 p->finished = 1;
                 goto clean_pipes;
             }

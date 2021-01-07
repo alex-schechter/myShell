@@ -65,7 +65,6 @@ int main(int argc, char **argv, char **env){
 
         /* If the job list is empty */
         if (first_job == NULL) {
-            // printf("first job is null\n");
             first_job = j;
         }
             
@@ -73,20 +72,12 @@ int main(int argc, char **argv, char **env){
         else {
             
             job *last_job = get_last_job(first_job);
-            // printf("first job is not null. prev job command is %s: \n", last_job->command);
             last_job->next = j;
         }
 
-        // if (first_job != NULL){
-        //     if (first_job->next == NULL)
-        //         printf("second job is null\n");
-        //     else
-        //         printf("second job is not null, the command is: %s\n", first_job->next->command);
-        // }
-
         job_count += 1;
 
-        launch_job(j, 1-background);
+        launch_job(j, 1-background, env);
         do_job_notification();
     }
 

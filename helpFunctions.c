@@ -17,19 +17,16 @@ void cd_cmd(char **argv){
     }
 }
 
-
 void env_cmd(char **argv){
-    return;
+    int i=0;
+    while (argv[i]){
+        printf("%s\n", argv[i]);
+        i++;
+    }
 }
 void jobs_cmd(char **argv){
     (void)argv;
     print_jobs();
-    return;
-}
-void fg_cmd(char **argv){
-    return;
-}
-void bg_cmd(char **argv){
     return;
 }
 
