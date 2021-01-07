@@ -57,6 +57,7 @@ int check_job_number(char *job_number);
 
 
 job *create_job_from_command(char *command);
+job *get_the_nth_job(int job_number);
 void launch_job(job *j, int foreground);
 void wait_for_job (job *j);
 void format_job_info (job *j, const char *status);
@@ -102,7 +103,7 @@ void bg_cmd(char **argv);
 void commands_is_null(char *buffer);
 void free_processes(process* head);
 void free_duble_ptr(char **ptr);
-void print_shell(char *);
+void print_shell(const char *);
 int _strlen(char *buffer);
 int is_number(char *);
 

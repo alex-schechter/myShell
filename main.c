@@ -41,7 +41,7 @@ int main(int argc, char **argv, char **env){
 
     /* The main loop of the shell */
     while (1) {
-        print_shell(dolar);
+        print_shell("$ ");
         /* Get input from user */
         characters = getline(&buffer, &length, stdin);
 
@@ -76,6 +76,13 @@ int main(int argc, char **argv, char **env){
             // printf("first job is not null. prev job command is %s: \n", last_job->command);
             last_job->next = j;
         }
+
+        // if (first_job != NULL){
+        //     if (first_job->next == NULL)
+        //         printf("second job is null\n");
+        //     else
+        //         printf("second job is not null, the command is: %s\n", first_job->next->command);
+        // }
 
         job_count += 1;
 

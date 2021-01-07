@@ -29,8 +29,6 @@ void CONThandler(int sig){
 
 void CHLDhandler(int sig){
     (void)sig;
-    int status;
-    int pid;
     // do_job_notification();
     // while ((pid=waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0)
     // {

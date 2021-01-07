@@ -11,18 +11,14 @@ char *built_in_commands[] = {
     "exit",
     "env",
     "cd",
-    "jobs",
-    "fg",
-    "bg"
+    "jobs"
 };
 
 int (*built_in_funcs[])(char **argv) = {
     &exit_cmd,
     &env_cmd,
     &cd_cmd,
-    &jobs_cmd,
-    &fg_cmd,
-    &bg_cmd
+    &jobs_cmd
 };
 
 int built_in_funcs_count() {
@@ -98,7 +94,7 @@ void print_job(job *j, char *sign, int place_in_list){
 void print_jobs(){
     job *curr = first_job;
     job *j = NULL;
-    char *sign = "";
+    char *sign = " ";
     int i = 1;
 
     if (first_job == NULL){
@@ -109,12 +105,10 @@ void print_jobs(){
     while (curr->next != NULL){
         /* If this is the last job */
         if (i+1 == job_count){
-            printf("last job is: %s\n", curr->command);
             sign = "+";
         }
         else if (i+2 == job_count)
         {
-            printf("before job is: %s\n", curr->command);
             sign = "-";
         }
         
@@ -263,6 +257,7 @@ int check_job_number(char *job_number){
 void launch_job (job *j, int foreground) {
     pid_t pid;
     int mypipe[2], infile, outfile;
+    int first_process=1;
 
     infile = j->stdin;
 
@@ -270,6 +265,7 @@ void launch_job (job *j, int foreground) {
     for (process *p = j->first_process; p; p = p->next)
     {
         int i = 0;
+        int job_number = 0;
         // int built_in_command = 0;
         /* Set up pipes, if necessary */
         if (p->next)
@@ -284,13 +280,39 @@ void launch_job (job *j, int foreground) {
         else
             outfile = j->stdout;
 
-        /* Check for built in functions*/
+        /* Check for built in functions ( exit, env, cd, jobs ) */
         for (int i = 0; i<built_in_funcs_count(); i++){
             if (strcmp(p->argv[0], built_in_commands[i]) == 0) {
                 (*built_in_funcs[i])(p->argv);
                 p->finished = 1;
                 goto clean_pipes;
             }
+        }
+
+        /* If the command is fg or bg*/
+        if (strcmp(p->argv[0], "fg") == 0 || strcmp(p->argv[0], "bg") == 0) {
+            if (strcmp(p->argv[0], "fg") == 0)
+                foreground = 1;
+            else
+                foreground = 0;
+
+            /* Should continue the first job */
+            if (p->argv[1] == NULL) {
+                job_number = job_count - 1;
+            }
+            else {
+                job_number = atoi(p->argv[1]);
+            }
+            job *nth_job = get_the_nth_job(job_number);
+            if (nth_job == NULL) {
+                    fprintf(stderr, "Job number %s does not exist\n", p->argv[1]);
+                    p->finished = 1;
+                    return;
+            }
+            continue_job(nth_job, foreground);
+            p->finished = 1;
+            goto clean_pipes;
+            
         }
 
         /* Fork the child processes */
@@ -304,8 +326,15 @@ void launch_job (job *j, int foreground) {
         }
 
         /* This is the child process */
-        else if (pid == 0)
+        else if (pid == 0) {
+            /* If this is the first process in the process group set 
+                the pgid to be the pid of the first process */
+            if (first_process == 1) {
+                j->pgid = pid;
+            }
             launch_process (p, j->pgid, infile, outfile, j->stderr, foreground);
+        }   
+            
 
         /* This is the parent process */
         else
@@ -314,10 +343,12 @@ void launch_job (job *j, int foreground) {
             if (shell_is_interactive)
             {
                 if (!j->pgid)
-                j->pgid = pid;
+                    j->pgid = pid;
                 setpgid (pid, j->pgid);
             }
         }
+
+        first_process = 0;
 
     clean_pipes:
         /* Clean up after pipes */
@@ -336,10 +367,7 @@ void launch_job (job *j, int foreground) {
         put_job_in_foreground (j, 0);
     else
         put_job_in_background (j, 0);
-    
-    
 }
-
 
 
 /* Check for processes that have status information available,
@@ -361,7 +389,7 @@ void wait_for_job (job *j) {
 
 /* Format information about job status for the user to look at */
 void format_job_info (job *j, const char *status) {
-    fprintf (stderr, "%ld (%s): %s\n", (long)j->pgid, status, j->command);
+    fprintf (stderr, "%ld (%s): %s", (long)j->pgid, status, j->command);
 }
 
 /* Notify the user about stopped or terminated jobs.
@@ -377,23 +405,26 @@ void do_job_notification() {
     // printf("first_job command is: %s\n", first_job->command);
     for (j = first_job; j; j = jnext)
     {
-        // printf("the address of the job is: %p, the command is %s\n", j, j->command);
+        // printf("working on job with command %s at address %p\n", j->command, j);
         jnext = j->next;
 
         /* If all processes have completed, tell the user the job has
             completed and delete it from the list of active jobs */
         if (job_is_finished (j)) {
             format_job_info (j, "completed");
+            job_count -= 1;
+            
             if (jlast) {
                 jlast->next = jnext;
             }
-                
             else {
                 first_job = jnext;
             }
 
-            free_job(j);
-            j = NULL;
+            // TODO think about it
+            // free_job(j);
+            // j = NULL;
+
         }
 
         /* Notify the user about stopped jobs,
@@ -411,12 +442,10 @@ void do_job_notification() {
 }
 
 
-/* Mark a stopped job J as being running again */
-
+/* Mark a stopped job j as being running again */
 void mark_job_as_running (job *j) {
     for (process *p = j->first_process; p; p = p->next)
-    p->stopped = 0;
-
+        p->stopped = 0;
     j->notified = 0;
 }
 
@@ -424,23 +453,35 @@ void mark_job_as_running (job *j) {
 void continue_job (job *j, int foreground) {
     mark_job_as_running (j);
     if (foreground)
-    put_job_in_foreground (j, 1);
+        put_job_in_foreground (j, 1);
     else
-    put_job_in_background (j, 1);
+        put_job_in_background (j, 1);
 }
 
 /* Free the job and remove it from the list of active jobs */
 void free_job(job *j) {
-    free(j -> command);
-    j -> command = NULL;
+    printf("im here\n");
+    if (j==NULL)
+        return;
+    printf("the j data is: %p\n", j);
+    printf("im 2222 here\n");
+    
+    char *c = strdup(j->command);
+    printf("im 2222 here\n");
+
+    printf("freeing job with command %s\n", j->command);
+    free(j->command);
+    j->command = NULL;
     free_processes(j->first_process);
     j->first_process = NULL;
     free(j);
     j = NULL;
     job_count -= 1;
+    // printf("Done freeing job with command %s, the job list is: \n", c);
+    print_jobs();
 }
 
-
+/* Creates job from command inputed by the user */
 job *create_job_from_command(char *command) {
     job *new_job = NULL;
     process *process_list = NULL;
@@ -471,7 +512,7 @@ job *create_job_from_command(char *command) {
     new_job->first_process = process_list;
     new_job->command = strdup(command);
     new_job->notified = 0;
-    new_job->pgid = getpgid(getpid());
+    new_job->pgid = 0;
     new_job->stdin = STDIN_FILENO;
     new_job->stdout = STDOUT_FILENO;
     new_job->stderr = STDERR_FILENO;
@@ -495,4 +536,22 @@ int job_is_finished (job *j) {
             return 0;
     }
     return 1;
+}
+
+/* Gets the Nth job in the list */
+job *get_the_nth_job(int job_number) {
+    // printf("the job number is %s\n", job_number);
+    job *current = first_job;
+    int index = 1;
+    
+    while (current != NULL) {
+        if (job_number == index) {
+            if (current->next == NULL) 
+                return NULL;
+            return current;
+        }
+        index++;
+        current = current->next;
+    }
+    return NULL;
 }

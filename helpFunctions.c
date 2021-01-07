@@ -84,7 +84,7 @@ void free_duble_ptr(char **ptr){
     ptr = NULL;
 }
 
-void print_shell(char *dolar){
+void print_shell(const char *dolar){
     char cwd[MAX_SIZE-7-3];
     char hostname[MAX_SIZE];
 
