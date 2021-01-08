@@ -1,15 +1,14 @@
 #include "funcs.h"
 
-job *stopped_jobs;
-char *buff;
-
+job *first_job = NULL;
 pid_t shell_pgid;
 struct termios shell_tmodes;
 int shell_terminal;
 int shell_is_interactive;
-job *first_job = NULL;
 int job_count = 0;
-
+int history_count = 0;
+int original_history_count = 0;
+history *first_history_command;
 
 int main(int argc, char **argv, char **env){
 
@@ -22,7 +21,7 @@ int main(int argc, char **argv, char **env){
 
     /* Put our shell in its own process group in order to be
        placed in the fourground in our parent shell to enable job control */
-    init_shell();
+    // init_shell();
 
     buffer = NULL;
     length = 0;
@@ -31,12 +30,13 @@ int main(int argc, char **argv, char **env){
     // signal (SIGINT, INThandler);    
     // signal (SIGTSTP, TSTPhandler);
     // signal (SIGCONT, CONThandler);
-    signal (SIGCHLD, CHLDhandler);
+    // signal (SIGCHLD, CHLDhandler);
 
     // // ignore signals
     // signal (SIGTTIN, SIG_IGN);
     /* signal (SIGTTOU, SIG_IGN); */
 
+    load_history_to_list(&first_history_command);
     
 
     /* The main loop of the shell */
@@ -62,6 +62,8 @@ int main(int argc, char **argv, char **env){
         job *j = create_job_from_command(buffer);
         if (j == NULL)
             continue;
+
+        write_to_history(buffer);
 
         /* If the job list is empty */
         if (first_job == NULL) {

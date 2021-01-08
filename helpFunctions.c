@@ -3,6 +3,7 @@
 /* Built in exit command */
 void exit_cmd(char **argv){
     free_duble_ptr(argv);
+    save_history_to_file();
     exit(EXIT_SUCCESS);
 }
 

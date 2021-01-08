@@ -6,6 +6,7 @@ extern pid_t shell_pid;
 extern int shell_is_interactive;
 extern int job_count;
 extern job* first_job;
+extern int history_count;
 
 char *built_in_commands[] = {
     "exit",
@@ -288,7 +289,7 @@ void launch_job (job *j, int foreground, char **env) {
                 else
                     (*built_in_funcs[i])(p->argv);
                 p->finished = 1;
-                goto clean_pipes;
+                goto parent_process;
             }
         }
 
@@ -314,8 +315,17 @@ void launch_job (job *j, int foreground, char **env) {
             }
             continue_job(nth_job, foreground);
             p->finished = 1;
-            goto clean_pipes;
+            goto parent_process;
             
+        }
+
+        if (strcmp(p->argv[0], "history") == 0) {
+            if (p->argv[1] == NULL)
+                print_last_n_commands(history_count);
+            else
+                print_last_n_commands(atoi(p->argv[1]));
+            p->finished = 1;
+            goto parent_process;
         }
 
         /* Fork the child processes */
@@ -342,6 +352,7 @@ void launch_job (job *j, int foreground, char **env) {
         /* This is the parent process */
         else
         {
+        parent_process:
             p->pid = pid;
             if (shell_is_interactive)
             {
@@ -353,7 +364,6 @@ void launch_job (job *j, int foreground, char **env) {
 
         first_process = 0;
 
-    clean_pipes:
         /* Clean up after pipes */
         if (infile != j->stdin)
             close (infile);

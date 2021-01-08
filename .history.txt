@@ -1,0 +1,24 @@
+ls
+ls
+ls
+history
+history
+ls
+history
+exit
+history
+history
+exit
+ls
+history
+exit
+ls -la
+history
+tmux
+sudo apt  install tmux
+tmux
+ls -la
+history
+exit
+history
+exit
