@@ -18,12 +18,11 @@ history *get_last_history(){
 /* Load the history file to linked list at startup */
 void load_history_to_list(history **list) {
     FILE *file;
-    char *line = NULL, *buffer = NULL;
+    char *line = NULL;
     size_t len = 0;
     ssize_t read;
-    int line_number = 0;
-    int first = 1;
     history* curr;
+    int first = 1;
 
     file = fopen(history_filename, "a+" );
     if (file == NULL) {

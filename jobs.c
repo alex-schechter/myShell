@@ -15,7 +15,7 @@ char *built_in_commands[] = {
     "jobs"
 };
 
-int (*built_in_funcs[])(char **argv) = {
+void (*built_in_funcs[])(char **argv) = {
     &exit_cmd,
     &env_cmd,
     &cd_cmd,
@@ -94,7 +94,6 @@ void print_job(job *j, char *sign, int place_in_list){
 
 void print_jobs(){
     job *curr = first_job;
-    job *j = NULL;
     char *sign = " ";
     int i = 1;
 
@@ -282,6 +281,7 @@ void launch_job (job *j, int foreground, char **env) {
         }
         else
             outfile = j->stdout;
+            errfile = j->stderr;
 
         /* Check for redirections */
         for (int j=0; p->argv[j] != NULL; j++) {
@@ -300,7 +300,7 @@ void launch_job (job *j, int foreground, char **env) {
             /* Error */
             else if(strcmp(p->argv[j],"2>")==0) {
                 p->argv[j]=NULL;
-                strcpy(output,p->argv[j+1]);
+                strcpy(error,p->argv[j+1]);
                 err=2;
             }
 
@@ -322,7 +322,7 @@ void launch_job (job *j, int foreground, char **env) {
         }
         /* If I should redirect the error, set the error to the apropriate fd */
         if (err){
-            if ((errfile = creat(output , 0644)) < 0) {
+            if ((errfile = creat(error , 0644)) < 0) {
                 perror("Couldn't open the error file");
                 exit(EXIT_FAILURE);
             }
