@@ -21,7 +21,7 @@ int main(int argc, char **argv, char **env){
 
     /* Put our shell in its own process group in order to be
        placed in the fourground in our parent shell to enable job control */
-    // init_shell();
+    init_shell();
 
     buffer = NULL;
     length = 0;
@@ -30,7 +30,7 @@ int main(int argc, char **argv, char **env){
     // signal (SIGINT, INThandler);    
     // signal (SIGTSTP, TSTPhandler);
     // signal (SIGCONT, CONThandler);
-    // signal (SIGCHLD, CHLDhandler);
+    signal (SIGCHLD, CHLDhandler);
 
     // // ignore signals
     // signal (SIGTTIN, SIG_IGN);
