@@ -257,7 +257,7 @@ int check_job_number(char *job_number){
 
 void launch_job (job *j, int foreground, char **env) {
     pid_t pid;
-    int mypipe[2], infile, outfile;
+    int mypipe[2], infile, outfile, errfile;
     int first_process=1;
 
     infile = j->stdin;
@@ -267,7 +267,9 @@ void launch_job (job *j, int foreground, char **env) {
     {
         int i = 0;
         int job_number = 0;
-        // int built_in_command = 0;
+        int in=0, out=0, err=0;
+        char input[64], output[64], error[64];
+
         /* Set up pipes, if necessary */
         if (p->next)
         {
@@ -281,6 +283,51 @@ void launch_job (job *j, int foreground, char **env) {
         else
             outfile = j->stdout;
 
+        /* Check for redirections */
+        for (int j=0; p->argv[j] != NULL; j++) {
+            /* Input */
+            if(strcmp(p->argv[j],"<")==0) {
+                p->argv[j]=NULL;
+                strcpy(input,p->argv[j+1]);
+                in=2;
+            }
+            /* Output */
+            else if(strcmp(p->argv[j],">")==0) {
+                p->argv[j]=NULL;
+                strcpy(output,p->argv[j+1]);
+                out=2;
+            }
+            /* Error */
+            else if(strcmp(p->argv[j],"2>")==0) {
+                p->argv[j]=NULL;
+                strcpy(output,p->argv[j+1]);
+                err=2;
+            }
+
+        }
+
+        /* If I should redirect the input, set the infile to the apropriate fd */
+        if (in) {
+            if ((infile = open(input, O_RDONLY, 0)) < 0) {
+                perror("Couldn't open input file");
+                exit(EXIT_FAILURE);
+            }
+        }
+        /* If I should redirect the output, set the output to the apropriate fd */
+        if (out){
+            if ((outfile = creat(output , 0644)) < 0) {
+                perror("Couldn't open the output file");
+                exit(EXIT_FAILURE);
+            }
+        }
+        /* If I should redirect the error, set the error to the apropriate fd */
+        if (err){
+            if ((errfile = creat(output , 0644)) < 0) {
+                perror("Couldn't open the error file");
+                exit(EXIT_FAILURE);
+            }
+        }
+
         /* Check for built in functions ( exit, env, cd, jobs ) */
         for (int i = 0; i<built_in_funcs_count(); i++){
             if (strcmp(p->argv[0], built_in_commands[i]) == 0) {
@@ -293,7 +340,7 @@ void launch_job (job *j, int foreground, char **env) {
             }
         }
 
-        /* If the command is fg or bg*/
+        /* If the command is fg or bg */
         if (strcmp(p->argv[0], "fg") == 0 || strcmp(p->argv[0], "bg") == 0) {
             if (strcmp(p->argv[0], "fg") == 0)
                 foreground = 1;
@@ -345,7 +392,7 @@ void launch_job (job *j, int foreground, char **env) {
             if (first_process == 1) {
                 j->pgid = pid;
             }
-            launch_process (p, j->pgid, infile, outfile, j->stderr, foreground);
+            launch_process (p, j->pgid, infile, outfile, errfile, foreground);
         }   
             
 

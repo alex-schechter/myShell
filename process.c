@@ -52,7 +52,7 @@ void launch_process(process *p, pid_t pgid, int infile, int outfile, int errfile
 
     /* Exec the new process make sure we exit */    
     execvp (p->argv[0], p->argv);
-    perror ("");
+    perror (p->argv[0]);
     exit (EXIT_FAILURE);
 }
 
