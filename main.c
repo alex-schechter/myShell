@@ -41,6 +41,9 @@ int main(int argc, char **argv, char **env){
         buffer = handle_input();
         len = strlen(buffer);
 
+        /* Reset to terminal default settings */
+        tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes_old);
+
         curr_history_command = NULL;
         
         /* Check if its a foreground process */

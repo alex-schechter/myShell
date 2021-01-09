@@ -44,6 +44,13 @@ char *handle_input() {
 			++command_len;
 			break;
 		}
+
+		/* Ctrl-C */ 
+		else if (c == 3) {
+			printf("^C\n");
+			return "";
+		}
+
 		/* End of input */
 		else if (c == 4) {
 			buffer = strdup("exit");
@@ -51,7 +58,7 @@ char *handle_input() {
 			break;
 		}
 		/* Backslash */
-		else if (c == 127) {
+		else if (c == 127 || c == 8) {
 			if (command_len == 0) 
 				continue;
 			buffer[command_len] = '\0';
@@ -99,6 +106,14 @@ char *handle_input() {
 				case 68:
 					break;
 			}
+		}
+
+		/* Ignore other strange keys */
+		else if (c >= 0 && c <= 31) {
+			free(buffer);
+			buffer = NULL;
+			command_len = 0;
+			actual_buffer_len = 0;
 		}
 
 		else {
@@ -156,7 +171,12 @@ void init_shell(){
 void set_terminal_settings() {
 	tcgetattr( STDIN_FILENO, &shell_tmodes_old);
 	shell_tmodes_new = shell_tmodes_old;
-	shell_tmodes_new.c_lflag &= ~(ICANON | ECHO); 
+
+	// shell_tmodes_new.c_iflag |= IGNBRK;
+	// shell_tmodes_new.c_iflag &= ~(INLCR | ICRNL | IXON | IXOFF);
+	shell_tmodes_new.c_lflag &= ~(ICANON | ECHO | ISIG);
+
+	// shell_tmodes_new.c_lflag &= ~(ICANON | ECHO ); 
 	tcsetattr( STDIN_FILENO, TCSANOW, &shell_tmodes_new);
 }
 
