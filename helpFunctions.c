@@ -1,9 +1,13 @@
 #include "funcs.h"
 
+extern int shell_terminal;
+extern int shell_tmodes_old;
+
 /* Built in exit command */
 void exit_cmd(char **argv){
     free_duble_ptr(argv);
     save_history_to_file();
+    tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes_old);
     exit(EXIT_SUCCESS);
 }
 
