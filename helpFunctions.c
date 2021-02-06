@@ -72,7 +72,6 @@ void free_processes(process* head){
         free(tmp);
         tmp = NULL;
     }
-    head = NULL;
 }
 
 void free_duble_ptr(char **ptr){

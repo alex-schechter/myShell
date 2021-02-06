@@ -29,7 +29,6 @@ int main(int argc, char **argv, char **env){
 
     load_history_to_list(&first_history_command);
 
-    
     /* The main loop of the shell */
     while (1) {
 
@@ -38,9 +37,8 @@ int main(int argc, char **argv, char **env){
         set_terminal_settings();
 
         /* Get input from user */
-        buffer = handle_input();
+        buffer = handle_input(env);
         len = strlen(buffer);
-
         /* Reset to terminal default settings */
         tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes_old);
 
@@ -54,25 +52,23 @@ int main(int argc, char **argv, char **env){
         }
 
         job *j = create_job_from_command(buffer);
+
         if (j == NULL)
             continue;
-
+        
         write_to_history(buffer);
 
         /* If the job list is empty */
-        if (first_job == NULL) {
+        if (first_job == NULL) 
             first_job = j;
-        }
             
         /* If the job list is not empty */
         else {
-            
             job *last_job = get_last_job(first_job);
             last_job->next = j;
         }
 
         job_count += 1;
-
         launch_job(j, 1-background, env);
         do_job_notification();
 
@@ -80,6 +76,5 @@ int main(int argc, char **argv, char **env){
         tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes_old);
         free(buffer);
     }
-
     return 0;
 }

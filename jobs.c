@@ -98,19 +98,16 @@ void print_jobs(){
     int i = 1;
 
     if (first_job == NULL){
-            printf("there are no jobs\n");
-            return;
+        printf("there are no jobs\n");
+        return;
     }
 
     while (curr->next != NULL){
         /* If this is the last job */
-        if (i+1 == job_count){
+        if (i+1 == job_count)
             sign = "+";
-        }
         else if (i+2 == job_count)
-        {
             sign = "-";
-        }
         
         print_job(curr, sign, i);
         curr = curr->next;
@@ -128,16 +125,17 @@ void print_jobs(){
     // }
 }
 
-// int get_list_length(job *list){
-//     int count = 0;
-//     job *curr = list;
+int get_list_length(job *list){
+    int count = 0;
+    job *curr = list;
     
-//     while (curr != NULL){
-//         count +=1;
-//         curr = curr->next;
-//     }
-//     return count;
-// }
+    while (curr != NULL){
+        count +=1;
+        curr = curr->next;
+        
+    }
+    return count;
+}
 
 // void add_job_to_list(job **job_list,char *status){
 //     job *last_job;
@@ -463,9 +461,13 @@ void do_job_notification() {
     jlast = NULL;
 
     // printf("first_job command is: %s\n", first_job->command);
+    int job_len = get_list_length(first_job);
+
+    printf("the job len is: %d\n", job_len);
+
     for (j = first_job; j; j = jnext)
     {
-        // printf("working on job with command %s at address %p\n", j->command, j);
+        printf("working on job address %p\n", j);
         jnext = j->next;
 
         /* If all processes have completed, tell the user the job has
@@ -520,26 +522,25 @@ void continue_job (job *j, int foreground) {
 
 /* Free the job and remove it from the list of active jobs */
 void free_job(job *j) {
-    (void)j;
-    // printf("im here\n");
-    // if (j==NULL)
-    //     return;
-    // printf("the j data is: %p\n", j);
-    // printf("im 2222 here\n");
+    // (void)j;
+    if (j==NULL)
+        return;
     
-    // char *c = strdup(j->command);
-    // printf("im 2222 here\n");
 
     // printf("freeing job with command %s\n", j->command);
-    // free(j->command);
-    // j->command = NULL;
-    // free_processes(j->first_process);
-    // j->first_process = NULL;
-    // free(j);
-    // j = NULL;
-    // job_count -= 1;
+    if (j->command != NULL) {
+        free(j->command);
+        j->command = NULL;
+    }
+    if (j->first_process != NULL) {
+        free_processes(j->first_process);
+        j->first_process = NULL;
+    }
+
+    free(j);
+    j = NULL;
     // printf("Done freeing job with command %s, the job list is: \n", c);
-    print_jobs();
+    // print_jobs();
 }
 
 /* Creates job from command inputed by the user */
@@ -577,7 +578,8 @@ job *create_job_from_command(char *command) {
     new_job->stdin = STDIN_FILENO;
     new_job->stdout = STDOUT_FILENO;
     new_job->stderr = STDERR_FILENO;
-
+    printf("returning job with command %s\n", new_job->command);
+    new_job->next = NULL;
     return new_job;
 }
 

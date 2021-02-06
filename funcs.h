@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <errno.h>
+#include <dirent.h>
 
 #define MAX_SIZE 1024
 
@@ -45,14 +46,24 @@ typedef struct history {
     char *command;              /* History command                              */
 } history;
 
+/* Command linked list */
+typedef struct command { 
+    struct command *next;       /* Next command                                 */
+    char *data;                 /* data                                         */
+} command;
+
 
 /* Shell functions */
-char *handle_input();
+command *find_commands_starts_with_prefix(char **env, char *prefix, int *size);
+char *handle_input(char **env);
 void init_shell();
 void put_job_in_foreground (job *j, int cont);
 void put_job_in_background (job *j, int cont);
 void seek_to_beginning(char *buff);
 void set_terminal_settings();
+void print_all_suggestions(command *first_suggestion);
+void free_all_suggestions(command *first_suggestion);
+
 
 /* Jobs functions */
 job *find_job_by_id(job *job_list, int job_id);
