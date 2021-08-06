@@ -31,26 +31,6 @@ void jobs_cmd(char **argv){
     return;
 }
 
-// /* Built in jobs command */
-// void jobs_cmd(char **argv){
-    
-//     exit(EXIT_SUCCESS);
-// }
-
-// /* Built in fg command */
-// void fg_cmd(char **argv){
-//     free(buffer);
-//     free_duble_ptr(commands);
-//     exit(EXIT_SUCCESS);
-// }
-
-// /* Built in bg command */
-// void bg_cmd(char **argv){
-//     free(buffer);
-//     free_duble_ptr(commands);
-//     exit(EXIT_SUCCESS);
-// }
-
 void commands_is_null(char *buffer){
     printf("command is null\n");
     free(buffer);

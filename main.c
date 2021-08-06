@@ -26,15 +26,8 @@ int main(int argc, char **argv, char **env){
     buffer = NULL;
     length = 0;
 
-    // // signal handlers
-    // signal (SIGINT, INThandler);    
-    // signal (SIGTSTP, TSTPhandler);
-    // signal (SIGCONT, CONThandler);
+    /* Signal handlers */
     signal (SIGCHLD, CHLDhandler);
-
-    // // ignore signals
-    // signal (SIGTTIN, SIG_IGN);
-    /* signal (SIGTTOU, SIG_IGN); */
 
     load_history_to_list(&first_history_command);
     
