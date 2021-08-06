@@ -117,7 +117,6 @@ void launch_job (job *j, int foreground, char **env) {
     /* Iterate over the processes of the job */
     for (process *p = j->first_process; p; p = p->next)
     {
-        int i = 0;
         int job_number = 0;
         int in=0, out=0, err=0;
         char input[64], output[64], error[64];
@@ -132,9 +131,10 @@ void launch_job (job *j, int foreground, char **env) {
             }
             outfile = mypipe[1];
         }
-        else
+        else {
             outfile = j->stdout;
             errfile = j->stderr;
+        }
 
         /* Check for redirections */
         for (int j=0; p->argv[j] != NULL; j++) {
@@ -365,19 +365,7 @@ void continue_job (job *j, int foreground) {
 
 /* Free the job and remove it from the list of active jobs */
 void free_job(job *j) {
-    printf("im here\n");
-    if (j==NULL)
-        return;
-    
-    char *c = strdup(j->command);
-
-    free(j->command);
-    j->command = NULL;
-    free_processes(j->first_process);
-    j->first_process = NULL;
-    free(j);
-    j = NULL;
-    job_count -= 1;
+    (void)j;
     print_jobs();
 }
 

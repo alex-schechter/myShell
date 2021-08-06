@@ -18,7 +18,7 @@
 
 /* Every process is a commend that is splitted by pipe (|) or a 
     regular command (e.g ls) */
-typedef struct process{
+typedef struct process {
     struct process *next;       /* next process in pipeline                     */
     char **argv;                /* arguments for exec                           */
     pid_t pid;                  /* process PID                                  */
@@ -28,26 +28,31 @@ typedef struct process{
 } process;
 
 /* Job is a group of processes */
-typedef struct job{
-    struct job *next;           /* next active job                              */
-    char *command;              /* command line, used for messages              */
-    process *first_process;     /* the first process of the list in this job    */
-    pid_t pgid;                 /* process group ID                             */
-    int notified;               /* true if user told about stopped job          */
-    struct termios tmodes;      /* saved terminal modes                         */
-    int stdin, stdout, stderr;  /* stardard i/o                                 */
+typedef struct job {
+    struct job *next;           /* Next active job                              */
+    char *command;              /* Command line, used for messages              */
+    process *first_process;     /* The first process of the list in this job    */
+    pid_t pgid;                 /* Process group ID                             */
+    int notified;               /* True if user told about stopped job          */
+    struct termios tmodes;      /* Saved terminal modes                         */
+    int stdin, stdout, stderr;  /* Stardard i/o                                 */
 } job;
 
 /* History linked list */
-typedef struct history{ 
-    struct history *next;       /* next command from history                    */
-    char *command;              /* history command                              */
+typedef struct history { 
+    struct history *next;       /* Next command from history                    */
+    struct history *prev;       /* Prev command from history                    */
+    char *command;              /* History command                              */
 } history;
 
+
 /* Shell functions */
+char *handle_input();
 void init_shell();
 void put_job_in_foreground (job *j, int cont);
 void put_job_in_background (job *j, int cont);
+void seek_to_beginning(char *buff);
+void set_terminal_settings();
 
 /* Jobs functions */
 job *find_job_by_id(job *job_list, int job_id);
@@ -83,6 +88,8 @@ int mark_process_status (pid_t pid, int status);
 
 /* History functions*/
 history *get_last_history();
+char *get_prev_history_command();
+char *get_next_history_command();
 void load_history_to_list(history **list);
 void write_to_history(char *command);
 void print_last_n_commands(int number_of_commands);

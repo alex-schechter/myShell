@@ -2,17 +2,57 @@
 
 extern int history_count;
 extern int original_history_count;
-extern history* first_history_command;
+extern history *first_history_command;
+extern history *curr_history_command;
 
 const char *const history_filename = "./.history.txt";
 
 /* Get the last history command */
-history *get_last_history(){
+history *get_last_history() {
     history *curr = first_history_command;
+    if (first_history_command == NULL) {
+        return NULL;
+    }
     while (curr->next != NULL){
         curr = curr->next;
     }
     return curr;
+}
+
+/* Get prev history command */
+char *get_prev_history_command() {
+    /* If this is the first time I have pressed the UP key */
+    if (curr_history_command == NULL) {
+        curr_history_command = get_last_history();
+        /* If I have nothing in the history yet */
+        if (curr_history_command == NULL) {
+            return "";
+        }
+        /* If I have history then get the last one */
+        return curr_history_command->command;
+    }
+
+    /* If I have reached the first command in history I have nowhere to go */
+    if (curr_history_command -> prev == NULL) {
+        return "";
+    }
+
+    /* Set the current history command to be the prev one and return the command */
+    curr_history_command = curr_history_command->prev;
+    return curr_history_command->command;
+}
+
+/* Get next history command */
+char *get_next_history_command() {
+    /* If this is the first time I have pressed the DOWN key or I have nothing in the history file 
+        OR This is the last command in history so I dont have a next one*/
+    if (curr_history_command == NULL || curr_history_command -> next == NULL) {
+            return "";
+    }
+
+    /* Set the current history command to be the next one and return the command */
+    curr_history_command = curr_history_command->next;
+    return curr_history_command->command;
 }
 
 /* Load the history file to linked list at startup */
@@ -37,15 +77,16 @@ void load_history_to_list(history **list) {
             *list = (history*)malloc(sizeof(history));
             (*list)->command = strdup(line);
             (*list)->next = NULL;
-            
+            (*list)->prev = NULL;
         }
         else {
             if (first == 1)
                 curr = *list;
             curr->next = (history*)malloc(sizeof(history));
+            curr->next->command = strdup(line);
+            curr->next->prev = curr;
+            curr->next->next = NULL;
             curr = curr->next;
-            curr->command = strdup(line);
-            curr->next = NULL;
             first = 0;
         }
         ++history_count;
@@ -60,13 +101,14 @@ void write_to_history(char *command) {
         first_history_command = (history*)malloc(sizeof(history));
         first_history_command->command = strdup(command);
         first_history_command->next = NULL;
+        first_history_command->prev = NULL;
     }
     else {
         history *last = get_last_history();
         last->next = (history*)malloc(sizeof(history));
-        last = last->next;
-        last->command = strdup(command);
-        last->next = NULL;
+        last->next->command = strdup(command);
+        last->next->prev = last;
+        last->next->next = NULL;
     }
     ++history_count;
 }

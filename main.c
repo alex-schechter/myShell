@@ -2,48 +2,49 @@
 
 job *first_job = NULL;
 pid_t shell_pgid;
-struct termios shell_tmodes;
+struct termios shell_tmodes_old;
+struct termios shell_tmodes_new;
 int shell_terminal;
 int shell_is_interactive;
 int job_count = 0;
 int history_count = 0;
 int original_history_count = 0;
 history *first_history_command;
+history *curr_history_command;
 
 int main(int argc, char **argv, char **env){
-
-    process *process_list;
     char *buffer;
-    const char *dolar = "$ ";
-    ssize_t characters; 
-    size_t length;
+    size_t len;
     int background = 0;
+
+    (void)argc;
+    (void)argv;
 
     /* Put our shell in its own process group in order to be
        placed in the fourground in our parent shell to enable job control */
     init_shell();
 
-    buffer = NULL;
-    length = 0;
-
     /* Signal handlers */
     signal (SIGCHLD, CHLDhandler);
 
     load_history_to_list(&first_history_command);
-    
 
+    
     /* The main loop of the shell */
     while (1) {
+
+        buffer = NULL;
         print_shell("$ ");
+        set_terminal_settings();
+
         /* Get input from user */
-        characters = getline(&buffer, &length, stdin);
+        buffer = handle_input();
+        len = strlen(buffer);
 
-        /* End of line */
-        if (characters == EOF)
-            exit(EXIT_FAILURE);
+        /* Reset to terminal default settings */
+        tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes_old);
 
-        int len = strlen(buffer);
-        buffer[len] = '\0';
+        curr_history_command = NULL;
         
         /* Check if its a foreground process */
         if ((char)buffer[len-2] == '&') {
@@ -74,6 +75,11 @@ int main(int argc, char **argv, char **env){
 
         launch_job(j, 1-background, env);
         do_job_notification();
+
+        /* Restore old terminal settings */
+        tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes_old);
+        free(buffer);
+        background = 0;
     }
 
     return 0;
