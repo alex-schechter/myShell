@@ -79,6 +79,7 @@ int main(int argc, char **argv, char **env){
         /* Restore old terminal settings */
         tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes_old);
         free(buffer);
+        background = 0;
     }
 
     return 0;
