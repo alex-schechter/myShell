@@ -109,7 +109,7 @@ char **parse_commands(char *buffer){
     buffer[_strlen(buffer) -1 ] = '\0';
     commands_length = get_commands_length(buffer);
 
-    // the length +1 is for NULL terminator at the end
+    /* The length +1 is for NULL terminator at the end */
     commands = malloc(sizeof(char *) * (commands_length + 1));
     if (commands == NULL){
         perror("could not allocate memory");
@@ -118,7 +118,7 @@ char **parse_commands(char *buffer){
         exit(EXIT_FAILURE);
     }
 
-    //split the commands by ' '
+    /* Split the commands by ' ' */
     command = strtok(buffer, " ");
     if (command == NULL){
         free_duble_ptr(commands);
@@ -149,10 +149,10 @@ void search_in_path(char **commands, char **env){
     char *path;
     struct stat check_file;
 
-    // get the PATH env variable
+    /* Get the PATH env variable */
     path = get_env_variable(env, "PATH");
 
-    // split the path to all the paths concatenated to the command
+    /* Split the path to all the paths concatenated to the command */
     path_vars = split_path(path, commands[0]);
     if (path_vars == NULL){
         free_duble_ptr(commands);

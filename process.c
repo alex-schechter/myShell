@@ -14,7 +14,6 @@ void launch_process(process *p, pid_t pgid, int infile, int outfile, int errfile
             This has to be done both by the shell and in the individual
             child processes because of potential race conditions */
         pid = getpid ();
-        // printf("the pid is %d, the jobs pgid is: %d and the command is:%s\n", pid, pgid, p->argv[0]);
         if (pgid == 0) 
             pgid = pid;
 
@@ -68,11 +67,9 @@ int mark_process_status (pid_t pid, int status) {
                 {
                     p->status = status;
                     if (WIFSTOPPED (status)) {
-                        // printf("process stopped\n");
                         p->stopped = 1;
                     }
                     else {
-                        // printf("process finished\n");
                         p->finished = 1;
                         if (WIFSIGNALED (status))
                             fprintf (stderr, "%d: Terminated by signal %d.\n",

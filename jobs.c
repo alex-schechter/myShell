@@ -286,8 +286,6 @@ void launch_job (job *j, int foreground, char **env) {
 /* Check for processes that have status information available,
    blocking until all processes in the given job have reported */
 void wait_for_job (job *j) {
-    // printf("started waiting for job: %s", j->command);
-    // printf("job_is_finished: %d\n", job_is_finished (j));
     int status;
     pid_t pid;
 
@@ -315,10 +313,8 @@ void do_job_notification() {
 
     jlast = NULL;
 
-    // printf("first_job command is: %s\n", first_job->command);
     for (j = first_job; j; j = jnext)
     {
-        // printf("working on job with command %s at address %p\n", j->command, j);
         jnext = j->next;
 
         /* If all processes have completed, tell the user the job has
@@ -333,10 +329,6 @@ void do_job_notification() {
             else {
                 first_job = jnext;
             }
-
-            // TODO think about it
-            // free_job(j);
-            // j = NULL;
 
         }
 
@@ -448,7 +440,6 @@ int job_is_finished (job *j) {
 
 /* Gets the Nth job in the list */
 job *get_the_nth_job(int job_number) {
-    // printf("the job number is %s\n", job_number);
     job *current = first_job;
     int index = 1;
     

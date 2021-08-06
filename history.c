@@ -115,24 +115,3 @@ void save_history_to_file() {
     }
     fclose(file);
 }
-
-
-
-// void history(char *command)
-// {
-//     char *token = command;
-//     token = strtok(NULL, " \"\n\t\r"); 
-
-//     int n = 10;
-//     if(token != NULL)
-//         n = atoi(token);
-
-//     int count = n;
-    
-//     for(int i = hist_i - count; count > 0; i++, count--)
-//     {
-//         printf("%s", hist[i % 20]);
-//         //count++;
-//     }
-    
-// }
